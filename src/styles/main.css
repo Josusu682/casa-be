@@ -1,0 +1,60 @@
+/* ══════════════════════════════════════════════════════
+   FUENTES
+══════════════════════════════════════════════════════ */
+@font-face {
+  font-family: 'AppleGaramond';
+  src: url('@/assets/fonts/AppleGaramond-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'AppleGaramond';
+  src: url('@/assets/fonts/AppleGaramond-LightItalic.ttf') format('truetype');
+  font-weight: 300;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Acumin';
+  src: url('@/assets/fonts/AcuminVariableConcept.otf') format('opentype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+/* ══════════════════════════════════════════════════════
+   TOKENS
+══════════════════════════════════════════════════════ */
+:root {
+  --cream:       #ece8e1;
+  --cream-light: #f5f3f0;
+  --gray:        #c8c4bf;
+  --text:        #1d1b19;
+  --text-mid:    #4a4642;
+  --text-light:  #8a857e;
+  --sage:        #4a6350;
+  --white:       #ffffff;
+
+  --font-serif:  'AppleGaramond', Georgia, serif;
+  --font-sans:   'Acumin', system-ui, -apple-system, sans-serif;
+
+  --max-w:       1100px;
+  --transition:  0.25s ease;
+}
+
+/* ══════════════════════════════════════════════════════
+   RESET
+══════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--cream);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+img { display: block; max-width: 100%; }
+a   { color: inherit; text-decoration: none; }
