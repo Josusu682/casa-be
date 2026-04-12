@@ -5,13 +5,11 @@
         Un espacio para entrenar tu<br />capacidad de sentirte bien.
       </h1>
       <p class="value__body">
-        No prometemos que la experiencia lo cambiará todo — trabajamos, en encontrarte,
-        con lo que necesitás, como espacio, y está en vos crecer. Porque eso es enfocarse.
-        Y eso es lo que hacés, eso lo que ofrecemos.
+        No prometemos que desaparezca lo difícil. Trabajamos directamente con el sistema nervioso — el mecanismo que regula cómo tu cuerpo procesa lo que vive. Porque eso se entrena. Y entrenar eso es lo que hace la diferencia.
       </p>
       <p class="value__tagline">Entrenamos tu capacidad de sentirte bien.</p>
+      
       <a href="#" class="value__btn">
-        <img src="/images/boton_conoce.png" alt="" class="value__btn-bg" />
         <span class="value__btn-text">Conoce Casa BE</span>
       </a>
     </div>
@@ -28,53 +26,71 @@
   background-size: cover;
   background-position: center;
 }
+
 .value__inner {
-  max-width: 540px;
+  max-width: 600px; /* Aumentado ligeramente para balancear los textos */
   margin: 0 auto;
 }
+
 .value__heading {
-  font-family: var(--font-serif);
+  font-family: var(--font-serif, serif);
   font-weight: 300;
-  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-size: clamp(1.6rem, 4vw, 3.1rem);
   line-height: 1.35;
-  color: var(--text);
+  color: #394e3c;
   margin-bottom: 1.6rem;
 }
+
 .value__body {
-  font-family: var(--font-sans);
-  font-size: 0.78rem;
+  font-family: var(--font-sans, sans-serif);
+  font-size: 1.5rem;
   font-weight: 300;
-  color: var(--text-mid);
+  color: #394e3c;
   line-height: 1.75;
-  margin-bottom: 0.5rem;
-}
-.value__tagline {
-  font-family: var(--font-sans);
-  font-size: 0.76rem;
-  font-weight: 300;
-  color: var(--text-light);
-  margin-bottom: 2.2rem;
+  margin-bottom: 1.2rem;
 }
 
+.value__tagline {
+  font-family: var(--font-sans, sans-serif);
+  font-size: 1.2rem;
+  font-weight: 300;
+  color: #394e3c;
+  margin-bottom: 2.5rem;
+}
+
+/* --- BOTÓN ACTUALIZADO CON BORDES CSS --- */
 .value__btn {
-  display: inline-block;
-  position: relative;
-  cursor: pointer;
-}
-.value__btn-bg {
-  width: 180px;
-  height: auto;
-}
-.value__btn-text {
-  position: absolute;
-  inset: 0;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-sans);
-  font-size: 0.72rem;
+  text-decoration: none;
+  cursor: pointer;
+  
+  /* Estilo del borde y fondo */
+  background-color: #9FA3A6;
+  border: 1.5px solid #000000; /* Borde negro nítido */
+  border-radius: 100px; /* Forma de píldora */
+  
+  transition: all 0.3s ease;
+}
+
+.value__btn-text {
+  padding: 0.8rem 2.8rem;
+  font-family: var(--font-sans, sans-serif);
+  font-size: 1.2rem; /* Ajustado para legibilidad */
   font-weight: 400;
-  color: var(--white);
-  letter-spacing: 0.03em;
+  color: white; /* Color corporativo */
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* Efecto Hover */
+.value__btn:hover {
+  background-color: #394e3c;
+  border-color: #394e3c;
+}
+
+.value__btn:hover .value__btn-text {
+  color: #ffffff; /* Texto blanco al hacer hover */
 }
 </style>

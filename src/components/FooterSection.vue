@@ -3,7 +3,7 @@
     <div class="footer__inner">
       <div class="footer__left">
         <img src="/images/icono_2.png" alt="Casa BE" class="footer__logo" />
-        <p class="footer__address">&copy; Casa 17, 8011, Santiago, Chile</p>
+        <p class="footer__address">&copy; Casa BE 2026 • Santiago, Chile</p>
       </div>
       <div class="footer__right">
         <div class="footer__col">
@@ -13,8 +13,8 @@
         </div>
         <div class="footer__col">
           <a href="#" class="footer__link footer__link--highlight">Tienda</a>
-          <a href="#" class="footer__link">Aqui va algo</a>
-          <a href="#" class="footer__link">+56 xx xxxxxxx</a>
+          <a href="#" class="footer__link">Aprende más</a>
+          <a href="#" class="footer__link">Conversemos</a>
         </div>
       </div>
     </div>
@@ -49,7 +49,7 @@
 }
 .footer__address {
   font-family: var(--font-sans);
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   font-weight: 300;
   color: rgba(236,232,225,0.6);
   margin-top: 0.5rem;
@@ -65,7 +65,7 @@
 }
 .footer__link {
   font-family: var(--font-sans);
-  font-size: 0.68rem;
+  font-size: 1.2rem;
   font-weight: 300;
   color: rgba(236,232,225,0.7);
   transition: var(--transition);

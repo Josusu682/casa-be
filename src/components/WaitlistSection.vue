@@ -6,10 +6,10 @@
           Si el momento no es ahora, déjanos saber<br />
           cuando abra el siguiente taller.
         </p>
-        <p class="waitlist__sub">Es para todos los que quieran una cartera.</p>
+        <p class="waitlist__sub">Sin spam. Solo cuando hay algo real que contarte.</p>
       </div>
       <div class="waitlist__right">
-        <a href="#" class="waitlist__link">Tómate</a>
+        <a href="#" class="waitlist__link">Tú email</a>
         <img src="/images/flecha_linea.png" alt="" class="waitlist__arrow" />
       </div>
     </div>
@@ -20,58 +20,94 @@
 </script>
 
 <style scoped>
+/* CONFIGURACIÓN GLOBAL DE FUENTE */
 .waitlist {
-  padding: 3rem 2rem;
+  padding: 5rem 2rem;
   background-size: cover;
   background-position: center;
+  background-color: #f2f1eb;
+  /* Aplicamos Acumin Concept como base para la sección */
+  font-family: 'Acumin Concept', sans-serif;
 }
+
 .waitlist__inner {
-  max-width: var(--max-w);
+  max-width: 1200px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 2rem;
+  gap: 3rem;
 }
+
 .waitlist__text {
-  font-family: var(--font-serif);
+  /* Mantenemos el estilo italic pero con la nueva fuente */
+  font-family: 'Acumin Concept', sans-serif;
   font-style: italic;
   font-weight: 300;
-  font-size: clamp(0.9rem, 1.8vw, 1.05rem);
-  line-height: 1.55;
-  color: var(--text);
+  font-size: clamp(2rem, 5.4vw, 2.15rem); 
+  line-height: 1.3;
+  color: #394e3c;
 }
+
 .waitlist__sub {
-  font-family: var(--font-sans);
-  font-size: 0.7rem;
+  font-family: 'Acumin Concept';
+  font-size: 1.4rem;
   font-weight: 300;
-  color: var(--text-light);
-  margin-top: 0.25rem;
+  color: #394e3c;
+  opacity: 0.8;
+  margin-top: 1rem;
 }
+
 .waitlist__link {
-  font-family: var(--font-sans);
-  font-size: 0.72rem;
+  font-family: 'Acumin Concept';
+  font-size: 1.6rem;
   font-weight: 500;
-  color: var(--text);
+  color: #394e3c;
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 8px;
   white-space: nowrap;
+  transition: opacity 0.3s ease;
 }
+
+.waitlist__link:hover {
+  opacity: 0.7;
+}
+
 .waitlist__right {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2.5rem;
   flex-shrink: 0;
 }
+
 .waitlist__arrow {
-  width: 200px;
+  width: 350px;
   height: auto;
   object-fit: contain;
+  opacity: 0.8;
+}
+
+/* RESPONSIVO */
+@media (max-width: 1024px) {
+  .waitlist__inner {
+    flex-direction: column;
+    text-align: center;
+  }
+  .waitlist__right {
+    justify-content: center;
+    margin-top: 2rem;
+  }
 }
 
 @media (max-width: 768px) {
-  .waitlist__inner { flex-direction: column; text-align: center; }
-  .waitlist__right { justify-content: center; }
-  .waitlist__arrow { width: 140px; }
+  .waitlist__text {
+    font-size: 2.2rem;
+  }
+  .waitlist__sub, .waitlist__link {
+    font-size: 1.5rem;
+  }
+  .waitlist__arrow {
+    width: 200px;
+  }
 }
 </style>

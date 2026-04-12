@@ -1,5 +1,4 @@
-<template>
-  <NavHeader />
+<template>    
   <HeroSection />
   <ValueSection />
   <CourseSection />
@@ -11,6 +10,7 @@
 
 <script setup>
 import NavHeader from './components/NavHeader.vue'
+import TheNavbar from './components/TheNavbar.vue'
 import HeroSection from './components/HeroSection.vue'
 import ValueSection from './components/ValueSection.vue'
 import CourseSection from './components/CourseSection.vue'
