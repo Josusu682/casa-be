@@ -1,97 +1,81 @@
-    <!-- NO UTILIZADO TODAVIA -->
 <template>
-  <header
-    class="fixed top-0 w-full z-50 transition-all duration-300 backdrop-blur-md border-b border-white/20"
-    :class="[
-      scrolled ? '-translate-y-full' : 'translate-y-0',
-      navbarMobileOpened ? 'bg-white border-none' : 'bg-white/30'
-    ]"
-  >
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-20">
+  <nav class="absolute top-0 left-0 w-full z-50 bg-transparent py-4 px-6 md:px-12">
+    <div class="mx-auto flex max-w-screen-xl items-center justify-between">
+      
+      <a href="/" class="relative z-[60] h-10">
+        <img 
+          src="/images/logo_be.png" 
+          alt="Casa BE" 
+          class="h-full w-auto object-contain"
+          :class="isMenuOpen ? 'invert-0' : ''" 
+        />
+      </a>
 
-       
+      <button 
+        @click="toggleMenu" 
+        class="relative z-[60] flex flex-col justify-center items-center w-10 h-10 gap-1.5 focus:outline-none"
+        aria-label="Abrir menú"
+      >
+        <div 
+          class="w-8 h-[2px] rounded-full transition-all duration-300"
+          :class="[
+            isMenuOpen ? 'rotate-45 translate-y-[8px] bg-[#394e3c]' : 'bg-white'
+          ]"
+        ></div>
+        <div 
+          class="w-8 h-[2px] rounded-full transition-all duration-300"
+          :class="[
+            isMenuOpen ? 'opacity-0 translate-x-4 bg-[#394e3c]' : 'bg-white'
+          ]"
+        ></div>
+        <div 
+          class="w-8 h-[2px] rounded-full transition-all duration-300"
+          :class="[
+            isMenuOpen ? '-rotate-45 -translate-y-[8px] bg-[#394e3c]' : 'bg-white'
+          ]"
+        ></div>
+      </button>
 
-        <nav class="hidden md:flex items-center space-x-10" :class="{ 'hidden': navbarMobileOpened }">
-          <NuxtLink to="/precios" class="text-white hover:text-gray-200 font-medium tracking-wide transition-colors drop-shadow-md">
-            Precios
-          </NuxtLink>
-          <NuxtLink to="/nosotros" class="text-white hover:text-gray-200 font-medium tracking-wide transition-colors drop-shadow-md">
-            Nosotros
-          </NuxtLink>
-        </nav>
+    </div>
 
-        <div class="flex items-center z-[60]">
-          <NuxtLink 
-            to="/" 
-            class="flex-shrink-0 text-3xl font-light transition-colors drop-shadow-md"
-            :class="navbarMobileOpened ? 'text-gray-800' : 'text-white'"
-          >
-            be.
-          </NuxtLink>
-        </div>
-
+    <div 
+      class="fixed inset-0 bg-[#f2f1eb] z-50 transition-transform duration-500 ease-in-out flex flex-col items-center justify-center"
+      :class="isMenuOpen ? 'translate-y-0' : '-translate-y-full'"
+    >
+      <div class="flex flex-col items-center gap-8 text-[#394e3c] font-sans text-2xl md:text-4xl font-light">
+        <a href="/" class="hover:opacity-60 transition-opacity" @click="toggleMenu">Inicio</a>
+        <a href="#talleres" class="hover:opacity-60 transition-opacity" @click="toggleMenu">Próximos Talleres</a>
+        <a href="#nosotros" class="hover:opacity-60 transition-opacity" @click="toggleMenu">Nosotros</a>
+        <a href="#contacto" class="hover:opacity-60 transition-opacity" @click="toggleMenu">Contacto</a>
       </div>
     </div>
-
-    <div
-      class="absolute top-0 left-0 block w-screen h-screen transition-all duration-500 transform bg-white"
-      :class="navbarMobileOpened ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'"
-    >
-      <div class="flex flex-col items-center justify-center h-full text-2xl gap-8 text-gray-800 font-medium">
-        <NuxtLink to="/" class="hover:text-gray-500 transition-colors" @click="toggleMenu">Inicio</NuxtLink>
-        <NuxtLink to="/precios" class="hover:text-gray-500 transition-colors" @click="toggleMenu">Precios</NuxtLink>
-        <NuxtLink to="/nosotros" class="hover:text-gray-500 transition-colors" @click="toggleMenu">Nosotros</NuxtLink>
-        </div>
-    </div>
-  </header>
+  </nav>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onUnmounted } from 'vue'
 
-// Estado para el menú de pantalla completa
-const navbarMobileOpened = ref(false);
+const isMenuOpen = ref(false)
 
 const toggleMenu = () => {
-  navbarMobileOpened.value = !navbarMobileOpened.value;
-  // Opcional: Bloquear el scroll del body cuando el menú está abierto
-  if (navbarMobileOpened.value) {
-    document.body.style.overflow = 'hidden';
+  isMenuOpen.value = !isMenuOpen.value
+  
+  // Bloquear el scroll de la página cuando el menú está abierto
+  if (isMenuOpen.value) {
+    document.body.style.overflow = 'hidden'
   } else {
-    document.body.style.overflow = '';
+    document.body.style.overflow = 'auto'
   }
-};
+}
 
-// Lógica de Scroll (Adaptada de tu código original)
-const scrolled = ref(false);
-let lastPosition = 0;
-const limitPosition = 100;
-
-const handleScroll = () => {
-  // Solo ocultamos la barra si el menú móvil NO está abierto
-  if (!navbarMobileOpened.value) {
-    const currentScrollY = window.scrollY;
-
-    // Si bajamos y pasamos el límite
-    if (lastPosition < currentScrollY && limitPosition < currentScrollY) {
-      scrolled.value = true;
-    }
-
-    // Si subimos o estamos hasta arriba
-    if (lastPosition > currentScrollY || currentScrollY <= limitPosition) {
-      scrolled.value = false;
-    }
-
-    lastPosition = currentScrollY;
-  }
-};
-
-onMounted(() => {
-  window.addEventListener('scroll', handleScroll);
-});
-
+// Limpiar el bloqueo de scroll si el componente se destruye
 onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll);
-});
+  document.body.style.overflow = 'auto'
+})
 </script>
+
+<style scoped>
+.font-sans {
+  font-family: 'Acumin Concept', sans-serif;
+}
+</style>

@@ -15,15 +15,12 @@
         </p>                    -->
         
         <div class="hero__actions">
-          <a href="#" class="btn-casa-be" left>
+          <a href="#" class="btn-casa-be">
             <span>Reservar mi lugar</span>
           </a>
         </div>
       </div>
     </template>
-
-    
-
   </TheBannerTool>
 </template>
 
