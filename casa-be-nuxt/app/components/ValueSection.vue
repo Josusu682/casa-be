@@ -1,5 +1,5 @@
 <template>
-  <section class="value" :style="{ backgroundImage: `url('/images/fondo_gris.png')` }">
+  <section class="value">
     <div class="value__inner">
       <h1 class="value__heading">
         Un espacio para entrenar tu<br />capacidad de sentirte bien.
@@ -23,8 +23,8 @@
 .value {
   padding: 5rem 1.5rem 5.5rem;
   text-align: center;
-  background-size: cover;
-  background-position: center;
+  /* Aplicamos el color de fondo sólido aquí */
+  background-color: #D4D4D3; 
 }
 
 .value__inner {

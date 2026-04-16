@@ -33,10 +33,14 @@ import TheBannerTool from './TheBannerTool.vue'
 /* 1. CONFIGURACIÓN DEL FONDO (Igual que el ejemplo de Cymasuite) */
 .hero-custom {
   min-height: 100vh;
-  /* Aquí ponemos tu foto principal */
-  background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), url('/images/fondo.png');
+  /* La imagen y el filtro oscuro se mantienen igual */
+  background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0)), url('/images/fondo.png');
   background-size: cover;
-  background-position: center;
+  background-position: bottom center; 
+  
+  /* AQUÍ APLICAMOS TU COLOR */
+  background-color:#D4D4D3; 
+  
   display: flex;
   align-items: center;
 }
