@@ -9,7 +9,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'Casa BE',
+      title: 'casa-be',
       meta: [
         { name: 'description', content: 'Un espacio presencial donde la neurociencia y el bienestar se encuentran.' }
       ],
