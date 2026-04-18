@@ -1,15 +1,15 @@
 <template>
-  <section class="value">
+  <section ref="sectionRef" class="value">
     <div class="value__inner">
-      <h1 class="value__heading">
+      <h1 class="value__heading" :style="headingStyle">
         Un espacio para entrenar tu<br />capacidad de sentirte bien.
       </h1>
-      <p class="value__body">
+      <p class="value__body" :style="bodyStyle">
         No prometemos que desaparezca lo difícil. Trabajamos directamente con el sistema nervioso — el mecanismo que regula cómo tu cuerpo procesa lo que vive. Porque eso se entrena. Y entrenar eso es lo que hace la diferencia.
       </p>
-      <p class="value__tagline">Entrenamos tu capacidad de sentirte bien.</p>
+      <p class="value__tagline" :style="taglineStyle">Entrenamos tu capacidad de sentirte bien.</p>
       
-      <a href="#" class="value__btn">
+      <a href="#" class="value__btn" :style="btnStyle">
         <span class="value__btn-text">Conoce Casa BE</span>
       </a>
     </div>
@@ -17,6 +17,56 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+
+const sectionRef = ref(null)
+const scrollProgress = ref(0)
+const inProgress = ref(0)
+const outProgress = ref(0)
+
+const OFFSET = 90
+
+function updateProgress() {
+  if (!sectionRef.value) return
+  const { top, bottom } = sectionRef.value.getBoundingClientRect()
+  const vh = window.innerHeight
+
+  inProgress.value = Math.max(0, Math.min(1, (vh - top) / (vh * 0.55)))
+  outProgress.value = Math.max(0, Math.min(1, bottom / (vh * 0.35)))
+
+  scrollProgress.value = Math.min(inProgress.value, outProgress.value)
+}
+
+onMounted(() => {
+  updateProgress()
+  window.addEventListener('scroll', updateProgress, { passive: true })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', updateProgress)
+})
+
+const slideX = computed(() => OFFSET * (outProgress.value - inProgress.value))
+
+const headingStyle = computed(() => ({
+  opacity: scrollProgress.value,
+  transform: `translateX(${slideX.value}px)`,
+}))
+
+const bodyStyle = computed(() => ({
+  opacity: scrollProgress.value,
+  transform: `translateX(${slideX.value * 0.85}px)`,
+}))
+
+const taglineStyle = computed(() => ({
+  opacity: scrollProgress.value,
+  transform: `translateX(${slideX.value * 0.7}px)`,
+}))
+
+const btnStyle = computed(() => ({
+  opacity: scrollProgress.value,
+  transform: `translateX(${slideX.value * 0.5}px)`,
+}))
 </script>
 
 <style scoped>
@@ -71,7 +121,7 @@
   border: 1.5px solid #9FA3A6; /* Borde negro nítido */
   border-radius: 100px; /* Forma de píldora */
   
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .value__btn-text {

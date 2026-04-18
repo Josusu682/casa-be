@@ -1,11 +1,11 @@
 <template>
-  <section class="instagram" :style="{ backgroundImage: `url('/images/fondo_2.png')` }">
-    <div class="instagram__header">
+  <section ref="sectionRef" class="instagram" :style="{ backgroundImage: `url('/images/fondo_2.png')`, ...sectionStyle }">
+    <div class="instagram__header" :style="headerStyle">
       <img src="/images/ig.png" alt="Instagram" class="instagram__icon" />
       <span>Síguenos en Instagram</span>
     </div>
     
-    <div class="instagram__grid">
+    <div class="instagram__grid" :style="gridStyle">
       <div class="ig-card" v-for="card in cards" :key="card.id">
         <div class="ig-card__header">
           <img src="/images/icono_2.png" alt="" class="ig-card__avatar" />
@@ -23,6 +23,36 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+
+const sectionRef = ref(null)
+const inProg = ref(0)
+const outProg = ref(0)
+
+const OFFSET = 60
+
+function updateProgress() {
+  if (!sectionRef.value) return
+  const { top, bottom } = sectionRef.value.getBoundingClientRect()
+  const vh = window.innerHeight
+  inProg.value = Math.max(0, Math.min(1, (vh - top) / (vh * 0.45)))
+  outProg.value = Math.max(0, Math.min(1, bottom / (vh * 0.35)))
+}
+
+onMounted(() => {
+  updateProgress()
+  window.addEventListener('scroll', updateProgress, { passive: true })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', updateProgress)
+})
+
+const sectionStyle = computed(() => ({ opacity: Math.min(inProg.value, outProg.value) }))
+const slideX = computed(() => OFFSET * (inProg.value - outProg.value))
+const headerStyle = computed(() => ({ transform: `translateX(${slideX.value}px)` }))
+const gridStyle = computed(() => ({ transform: `translateX(${slideX.value * 0.8}px)` }))
+
 const cards = [
   { id: 1 },
   { id: 2 },
