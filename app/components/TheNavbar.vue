@@ -8,26 +8,26 @@
         aria-label="Abrir menú"
       >
         <div 
-          class="w-8 h-[2px] rounded-full transition-all duration-300"
+          class="w-10 h-[4px] rounded-full transition-all duration-300"
           :class="[
             isMenuOpen ? 'rotate-45 translate-y-[8px] bg-[#394e3c]' : 'bg-white'
           ]"
         ></div>
         <div 
-          class="w-8 h-[2px] rounded-full transition-all duration-300"
+          class="w-10 h-[4px] rounded-full transition-all duration-300"
           :class="[
             isMenuOpen ? 'opacity-0 translate-x-4 bg-[#394e3c]' : 'bg-white'
           ]"
         ></div>
         <div 
-          class="w-8 h-[2px] rounded-full transition-all duration-300"
+          class="w-10 h-[4px] rounded-full transition-all duration-300"
           :class="[
             isMenuOpen ? '-rotate-45 -translate-y-[8px] bg-[#394e3c]' : 'bg-white'
           ]"
         ></div>
       </button>
 
-      <NuxtLink to="/" class="relative z-[60] h-10">
+      <NuxtLink to="/" class="relative z-[60] h-17">
         <img 
           src="/images/logo_be.png" 
           alt="Casa BE" 
