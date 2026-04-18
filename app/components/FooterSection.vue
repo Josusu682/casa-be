@@ -1,11 +1,11 @@
 <template>
-  <footer class="footer" :style="{ backgroundImage: `url('/images/fondo_verde.png')` }">
+  <footer ref="sectionRef" class="footer" :style="{ backgroundImage: `url('/images/fondo_verde.png')`, ...sectionStyle }">
     <div class="footer__inner">
-      <div class="footer__left">
+      <div class="footer__left" :style="leftStyle">
         <img src="/images/icono_2.png" alt="Casa BE" class="footer__logo" />
         <p class="footer__address">&copy; Casa BE 2026 • Santiago, Chile</p>
       </div>
-      <div class="footer__right">
+      <div class="footer__right" :style="rightStyle">
         <div class="footer__col">
           <a href="#" class="footer__link">Conoce Casa BE</a>
           <a href="#" class="footer__link">Tu Entrenamiento</a>
@@ -22,6 +22,35 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+
+const sectionRef = ref(null)
+const inProg = ref(0)
+const outProg = ref(0)
+
+const OFFSET = 50
+
+function updateProgress() {
+  if (!sectionRef.value) return
+  const { top, bottom } = sectionRef.value.getBoundingClientRect()
+  const vh = window.innerHeight
+  inProg.value = Math.max(0, Math.min(1, (vh - top) / (vh * 0.18)))
+  outProg.value = Math.max(0, Math.min(1, bottom / (vh * 0.35)))
+}
+
+onMounted(() => {
+  updateProgress()
+  window.addEventListener('scroll', updateProgress, { passive: true })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', updateProgress)
+})
+
+const sectionStyle = computed(() => ({ opacity: Math.min(inProg.value, outProg.value) }))
+const slideX = computed(() => OFFSET * (inProg.value - outProg.value))
+const leftStyle = computed(() => ({ transform: `translateX(${slideX.value}px)` }))
+const rightStyle = computed(() => ({ transform: `translateX(${slideX.value * 0.7}px)` }))
 </script>
 
 <style scoped>

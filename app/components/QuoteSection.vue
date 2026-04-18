@@ -1,5 +1,5 @@
 <template>
-  <section class="quote" :style="{ backgroundImage: `url('/images/fondo_gris_2.png')` }">
+  <section ref="sectionRef" class="quote" :style="{ backgroundImage: `url('/images/fondo_gris_2.png')`, ...sectionStyle }">
     <div class="quote__container">
       
       <button @click="prevSlide" class="quote__nav-btn" aria-label="Anterior">
@@ -9,7 +9,7 @@
         </svg>
       </button>
 
-      <div class="quote__content-wrapper">
+      <div class="quote__content-wrapper" :style="containerStyle">
         <Transition name="fade-slide" mode="out-in">
           <div :key="currentSlide" class="quote__slide">
             <blockquote class="quote__text">
@@ -29,7 +29,7 @@
 
     </div>
 
-    <div class="quote__dots">
+    <div class="quote__dots" :style="dotsStyle">
       <button 
         v-for="(_, index) in slides" 
         :key="index" 
@@ -42,7 +42,35 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+
+const sectionRef = ref(null)
+const inProg = ref(0)
+const outProg = ref(0)
+
+const OFFSET = 40
+
+function updateProgress() {
+  if (!sectionRef.value) return
+  const { top, bottom } = sectionRef.value.getBoundingClientRect()
+  const vh = window.innerHeight
+  inProg.value = Math.max(0, Math.min(1, (vh - top) / (vh * 0.45)))
+  outProg.value = Math.max(0, Math.min(1, bottom / (vh * 0.35)))
+}
+
+onMounted(() => {
+  updateProgress()
+  window.addEventListener('scroll', updateProgress, { passive: true })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', updateProgress)
+})
+
+const sectionStyle = computed(() => ({ opacity: Math.min(inProg.value, outProg.value) }))
+const slideX = computed(() => OFFSET * (outProg.value - inProg.value))
+const containerStyle = computed(() => ({ transform: `translateX(${slideX.value}px)` }))
+const dotsStyle = computed(() => ({ transform: `translateX(${slideX.value * 0.5}px)` }))
 
 const currentSlide = ref(0)
 
@@ -106,7 +134,7 @@ const prevSlide = () => {
   cursor: pointer;
   color: #394e3c;
   opacity: 0.4;
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease;
   flex-shrink: 0;
 }
 

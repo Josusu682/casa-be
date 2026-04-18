@@ -1,7 +1,7 @@
 <template>
-  <section class="waitlist" style="background-image: url('/images/fondo_gris_3.png')">
+  <section ref="sectionRef" class="waitlist" :style="{ backgroundImage: `url('/images/fondo_gris_3.png')`, ...sectionStyle }">
     <div class="waitlist__inner">
-      <div class="waitlist__left">
+      <div class="waitlist__left" :style="leftStyle">
         <p class="waitlist__text">
           Si el momento no es ahora, déjanos saber<br />
           cuando abra el siguiente taller.
@@ -9,7 +9,7 @@
         <p class="waitlist__sub">Sin spam. Solo cuando hay algo real que contarte.</p>
       </div>
       
-      <form class="waitlist__right" @submit.prevent="registrarMail">
+      <form class="waitlist__right" @submit.prevent="registrarMail" :style="rightStyle">
         
         <input 
           type="email" 
@@ -29,7 +29,35 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+
+const sectionRef = ref(null)
+const inProg = ref(0)
+const outProg = ref(0)
+
+const OFFSET = 60
+
+function updateProgress() {
+  if (!sectionRef.value) return
+  const { top, bottom } = sectionRef.value.getBoundingClientRect()
+  const vh = window.innerHeight
+  inProg.value = Math.max(0, Math.min(1, (vh - top) / (vh * 0.45)))
+  outProg.value = Math.max(0, Math.min(1, bottom / (vh * 0.35)))
+}
+
+onMounted(() => {
+  updateProgress()
+  window.addEventListener('scroll', updateProgress, { passive: true })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', updateProgress)
+})
+
+const sectionStyle = computed(() => ({ opacity: Math.min(inProg.value, outProg.value) }))
+const slideX = computed(() => OFFSET * (outProg.value - inProg.value))
+const leftStyle = computed(() => ({ transform: `translateX(${slideX.value}px)` }))
+const rightStyle = computed(() => ({ transform: `translateX(${slideX.value * 0.7}px)` }))
 
 // Variable reactiva para guardar lo que el usuario escriba
 const email = ref('')

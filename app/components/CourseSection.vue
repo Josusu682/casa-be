@@ -1,44 +1,96 @@
 <template>
-  <section class="course">
-    <div class="course__img-wrap">
-     <img :src="`${baseUrl}images/dedo.png`" alt="Probablemente en el Cuerpo" class="course__img" />
-    </div>
-
-    <div 
-  class="course__content" 
-  :style="{ backgroundImage: `url('${baseUrl}images/fondo_2.png')` }"
->
-      <span class="course__meta-label">PRÓXIMO TALLER</span>
-      
-      <h2 class="course__title">{{ title }}</h2>
-      
-      <p class="course__desc">{{ description }}</p>
-
-      <div class="course__badges">
-        <span class="badge" v-for="(badge, i) in badges" :key="i">
-          <img :src="badge.icon" alt="" class="badge__icon" />
-          {{ badge.text }}
-        </span>
+  <section ref="sectionRef" class="course">
+    <div class="course__inner" :style="sectionStyle">
+      <div class="course__img-wrap">
+        <img :src="`${baseUrl}images/dedo.png`" alt="Probablemente en el Cuerpo" class="course__img" />
       </div>
 
-      <div class="course__actions">
-        <a href="#" class="course__btn">
-          <span>Reservar mi lugar</span>
-        </a>
-        <a href="#" class="course__btn course__btn--ghost">
-          <span>Quiero recibir más info</span>
-        </a>
+      <div 
+        class="course__content" 
+        :style="{ backgroundImage: `url('${baseUrl}images/fondo_2.png')` }"
+      >
+        <span class="course__meta-label" :style="labelStyle">PRÓXIMO TALLER</span>
+        
+        <h2 class="course__title" :style="titleStyle">{{ title }}</h2>
+        
+        <p class="course__desc" :style="descStyle">{{ description }}</p>
+
+        <div class="course__badges" :style="badgesStyle">
+          <span class="badge" v-for="(badge, i) in badges" :key="i">
+            <img :src="badge.icon" alt="" class="badge__icon" />
+            {{ badge.text }}
+          </span>
+        </div>
+
+        <div class="course__actions" :style="actionsStyle">
+          <a href="#" class="course__btn">
+            <span>Reservar mi lugar</span>
+          </a>
+          <a href="#" class="course__btn course__btn--ghost">
+            <span>Quiero recibir más info</span>
+          </a>
+        </div>
       </div>
     </div>
   </section>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 // 1. Obtenemos la configuración de Nuxt
 const config = useRuntimeConfig()
 const baseUrl = config.app.baseURL
+
+const sectionRef = ref(null)
+const scrollProgress = ref(0)
+const sectionOpacity = ref(0)
+
+const OFFSET = 90
+
+function updateProgress() {
+  if (!sectionRef.value) return
+  const { top, bottom } = sectionRef.value.getBoundingClientRect()
+  const vh = window.innerHeight
+  const inp = Math.max(0, Math.min(1, (vh - top) / (vh * 0.45)))
+  const outp = Math.max(0, Math.min(1, bottom / (vh * 0.35)))
+  sectionOpacity.value = Math.min(inp, outp)
+  const textInp = Math.max(0, Math.min(1, (vh * 0.72 - top) / (vh * 0.32)))
+  scrollProgress.value = Math.min(textInp, outp)
+}
+
+onMounted(() => {
+  updateProgress()
+  window.addEventListener('scroll', updateProgress, { passive: true })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', updateProgress)
+})
+
+const sectionStyle = computed(() => ({ opacity: sectionOpacity.value }))
+const slideX = computed(() => (1 - scrollProgress.value) * OFFSET)
+
+const labelStyle = computed(() => ({
+  opacity: scrollProgress.value,
+  transform: `translateX(${slideX.value}px)`,
+}))
+const titleStyle = computed(() => ({
+  opacity: scrollProgress.value,
+  transform: `translateX(${slideX.value * 0.85}px)`,
+}))
+const descStyle = computed(() => ({
+  opacity: scrollProgress.value,
+  transform: `translateX(${slideX.value * 0.7}px)`,
+}))
+const badgesStyle = computed(() => ({
+  opacity: scrollProgress.value,
+  transform: `translateX(${slideX.value * 0.55}px)`,
+}))
+const actionsStyle = computed(() => ({
+  opacity: scrollProgress.value,
+  transform: `translateX(${slideX.value * 0.4}px)`,
+}))
 
 const title = ref('Entender(te) en el Cuerpo')
 const description = ref(
@@ -56,6 +108,10 @@ const badges = ref([
 <style scoped>
 /* Estructura Principal */
 .course {
+  background-color: #D4D4D3;
+}
+
+.course__inner {
   display: grid;
   grid-template-columns: 1fr 1fr;
   min-height: 500px;
@@ -79,6 +135,7 @@ const badges = ref([
   justify-content: center;
   background-size: cover;
   background-position: center;
+  overflow: hidden;
 }
 
 /* Tipografía y Colores (#394e3c) */
@@ -149,7 +206,7 @@ const badges = ref([
   text-decoration: none;
   border: 1.5px solid #394e3c; /* Borde negro */
   border-radius: 100px;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
   background-color: transparent;
 }
 
@@ -183,7 +240,7 @@ const badges = ref([
 }
 
 @media (max-width: 768px) {
-  .course { grid-template-columns: 1fr; }
+  .course__inner { grid-template-columns: 1fr; }
   .course__img-wrap { height: 350px; }
   .course__content { padding: 3rem 1.5rem; }
   .course__actions { flex-direction: column; }
