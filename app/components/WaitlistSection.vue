@@ -1,5 +1,5 @@
 <template>
-  <section class="waitlist" :style="{ backgroundImage: `url('/images/fondo_gris_3.png')` }">
+  <section class="waitlist" style="background-image: url('/images/fondo_gris_3.png')">
     <div class="waitlist__inner">
       <div class="waitlist__left">
         <p class="waitlist__text">
@@ -8,15 +8,40 @@
         </p>
         <p class="waitlist__sub">Sin spam. Solo cuando hay algo real que contarte.</p>
       </div>
-      <div class="waitlist__right">
-        <a href="#" class="waitlist__link">Tú email</a>
-        <img src="/images/flecha_linea.png" alt="" class="waitlist__arrow" />
-      </div>
+      
+      <form class="waitlist__right" @submit.prevent="registrarMail">
+        
+        <input 
+          type="email" 
+          v-model="email" 
+          placeholder="Tu mail" 
+          class="waitlist__input" 
+          required 
+        />
+        
+        <button type="submit" class="waitlist__btn">
+          <img src="/images/flecha_linea.png" alt="Enviar" class="waitlist__arrow" />
+        </button>
+
+      </form>
     </div>
   </section>
 </template>
 
 <script setup>
+import { ref } from 'vue'
+
+// Variable reactiva para guardar lo que el usuario escriba
+const email = ref('')
+
+// Función que se ejecuta al presionar la flecha o la tecla Enter
+const registrarMail = () => {
+  console.log('Mail a registrar:', email.value)
+  // Aquí luego conectarás tu backend o servicio de correos (ej. Resend, Mailchimp)
+  
+  alert('¡Gracias! Te avisaremos al correo: ' + email.value)
+  email.value = '' // Limpiamos el campo después de enviar
+}
 </script>
 
 <style scoped>
@@ -26,8 +51,7 @@
   background-size: cover;
   background-position: center;
   background-color: #f2f1eb;
-  /* Aplicamos Acumin Concept como base para la sección */
-  font-family: 'Acumin Concept', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .waitlist__inner {
@@ -40,9 +64,7 @@
 }
 
 .waitlist__text {
-  /* Mantenemos el estilo italic pero con la nueva fuente */
-  font-family: 'Acumin Concept', sans-serif;
-
+  font-family: var(--font-inter);
   font-weight: 300;
   font-size: clamp(2rem, 5.4vw, 2.15rem); 
   line-height: 1.3;
@@ -50,7 +72,7 @@
 }
 
 .waitlist__sub {
-  font-family: 'Acumin Concept';
+  font-family: var(--font-inter);
   font-size: 1.4rem;
   font-weight: 300;
   color: #394e3c;
@@ -58,33 +80,62 @@
   margin-top: 1rem;
 }
 
-.waitlist__link {
-  font-family: 'Acumin Concept';
-  font-size: 1.6rem;
-  font-weight: 500;
-  color: #394e3c;
-  text-decoration: underline;
-  text-underline-offset: 8px;
-  white-space: nowrap;
-  transition: opacity 0.3s ease;
-}
-
-.waitlist__link:hover {
-  opacity: 0.7;
-}
-
+/* EL FORMULARIO (Mantiene la posición ancla) */
 .waitlist__right {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 2.5rem;
+  justify-content: center;
   flex-shrink: 0;
+}
+
+/* NUEVO ESTILO: El campo para escribir */
+.waitlist__input {
+  position: absolute;
+  z-index: 2; /* Por encima de la flecha */
+  left: 20px; /* Ajusta esto para mover el texto sobre la línea */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 220px; /* Espacio para escribir un correo largo */
+  
+  /* Quitamos estilos feos de los inputs por defecto */
+  background: transparent;
+  border: none;
+  outline: none; /* Quita el borde azul al hacer clic */
+  
+  /* Estética del texto */
+  font-family: var(--font-inter);
+  font-size: 1.6rem;
+  font-weight: 300; /* Inter Light */
+  color: #ffffff;
+}
+
+/* Estilo para el texto "Tu mail" cuando está vacío */
+.waitlist__input::placeholder {
+  color: rgba(255, 255, 255, 0.8); /* Blanco ligeramente transparente */
+}
+
+/* NUEVO ESTILO: El botón invisible que envuelve la flecha */
+.waitlist__btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  z-index: 1; /* Por debajo del texto */
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Efecto hover: la flecha avanza un poquito cuando pasas el mouse */
+.waitlist__btn:hover {
+  opacity: 0.8;
+  transform: translateX(5px); 
 }
 
 .waitlist__arrow {
   width: 350px;
   height: auto;
   object-fit: contain;
-  opacity: 0.8;
+  display: block; /* Evita márgenes fantasma debajo de las imágenes */
 }
 
 /* RESPONSIVO */
@@ -94,7 +145,6 @@
     text-align: center;
   }
   .waitlist__right {
-    justify-content: center;
     margin-top: 2rem;
   }
 }
@@ -103,11 +153,16 @@
   .waitlist__text {
     font-size: 2.2rem;
   }
-  .waitlist__sub, .waitlist__link {
+  .waitlist__sub {
     font-size: 1.5rem;
   }
   .waitlist__arrow {
     width: 200px;
+  }
+  .waitlist__input {
+    font-size: 1.3rem;
+    width: 150px;
+    left: 10px; /* Se ajusta el texto en móviles */
   }
 }
 </style>
