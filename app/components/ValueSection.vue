@@ -68,7 +68,7 @@
   
   /* Estilo del borde y fondo */
   background-color: #9FA3A6;
-  border: 1.5px solid #000000; /* Borde negro nítido */
+  border: 1.5px solid #9FA3A6; /* Borde negro nítido */
   border-radius: 100px; /* Forma de píldora */
   
   transition: all 0.3s ease;

@@ -1,10 +1,13 @@
 <template>
   <section class="course">
     <div class="course__img-wrap">
-      <img src="/images/dedo.png" alt="Probablemente en el Cuerpo" class="course__img" />
+     <img :src="`${baseUrl}images/dedo.png`" alt="Probablemente en el Cuerpo" class="course__img" />
     </div>
 
-    <div class="course__content" :style="{ backgroundImage: `url('/images/fondo_2.png')` }">
+    <div 
+  class="course__content" 
+  :style="{ backgroundImage: `url('${baseUrl}images/fondo_2.png')` }"
+>
       <span class="course__meta-label">PRÓXIMO TALLER</span>
       
       <h2 class="course__title">{{ title }}</h2>
@@ -33,14 +36,20 @@
 <script setup>
 import { ref } from 'vue'
 
+// 1. Obtenemos la configuración de Nuxt
+const config = useRuntimeConfig()
+const baseUrl = config.app.baseURL
+
 const title = ref('Entender(te) en el Cuerpo')
 const description = ref(
   'En 3 horas vas a entender por primera vez por qué tu cuerpo responde como responde — y vas a experimentar herramientas concretas para atravesarlo diferente.'
 )
+
+// 2. Ajustamos las rutas agregando el baseUrl al principio
 const badges = ref([
-  { icon: '/images/ubi.png', text: 'CASA BE' },
-  { icon: '/images/clock.png', text: '10:00 HRS AM duración: 3 horas' },
-  { icon: '/images/home.png', text: 'FORMATO PRESENCIAL Máx. 12 personas' },
+  { icon: `${baseUrl}images/ubi.png`, text: 'CASA BE' },
+  { icon: `${baseUrl}images/clock.png`, text: '10:00 HRS AM duración: 3 horas' },
+  { icon: `${baseUrl}images/home.png`, text: 'FORMATO PRESENCIAL Máx. 12 personas' },
 ])
 </script>
 
