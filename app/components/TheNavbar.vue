@@ -43,10 +43,12 @@
       :class="isMenuOpen ? 'translate-y-0' : '-translate-y-full'"
     >
       <div class="flex flex-col items-center gap-8 text-[#394e3c] font-sans text-2xl md:text-4xl font-light">
-        <NuxtLink to="/" class="hover:opacity-60 transition-opacity" @click="toggleMenu">Inicio</NuxtLink>
-        <NuxtLink to="/#talleres" class="hover:opacity-60 transition-opacity" @click="toggleMenu">Próximos Talleres</NuxtLink>
-        <NuxtLink to="/nosotros" class="hover:opacity-60 transition-opacity" @click="toggleMenu">Nosotros</NuxtLink>
-        <NuxtLink to="/#contacto" class="hover:opacity-60 transition-opacity" @click="toggleMenu">Contacto</NuxtLink>
+        <NuxtLink to="/" class="hover:opacity-60 transition-opacity" @click="toggleMenu">Conoce Casa BE</NuxtLink>
+        <NuxtLink to="/#entrenamiento" class="hover:opacity-60 transition-opacity" @click="toggleMenu">Tu Entrenamiento</NuxtLink>
+        <NuxtLink to="/fundacion" class="hover:opacity-60 transition-opacity" @click="toggleMenu">Fundación BE</NuxtLink>
+        <NuxtLink to="/#tienda" class="hover:opacity-60 transition-opacity" @click="toggleMenu">Tienda</NuxtLink>
+         <NuxtLink to="/#aprende" class="hover:opacity-60 transition-opacity" @click="toggleMenu">Aprende más</NuxtLink>
+          <NuxtLink to="/#conversemos" class="hover:opacity-60 transition-opacity" @click="toggleMenu">Conversemos</NuxtLink>
       </div>
     </div>
   </nav>
