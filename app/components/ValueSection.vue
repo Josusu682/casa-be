@@ -1,6 +1,6 @@
 <template>
   <section class="value">
-    <div class="value__inner">
+    <div ref="innerRef" class="value__inner">
       <h1 class="value__heading">
         Un espacio para entrenar tu<br />capacidad de sentirte bien.
       </h1>
@@ -17,6 +17,38 @@
 </template>
 
 <script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+
+const innerRef = ref(null)
+let rafId = null
+
+function updateAnimation() {
+  if (!innerRef.value) return
+  const rect = innerRef.value.getBoundingClientRect()
+  const vh = window.innerHeight
+
+  const enter = (vh - rect.top) / (vh * 0.6)
+  const exit = rect.bottom / (vh * 0.6)
+  const progress = Math.min(1, Math.max(0, Math.min(enter, exit)))
+
+  innerRef.value.style.opacity = progress
+  innerRef.value.style.transform = `translateX(${60 * (1 - progress)}px)`
+}
+
+function onScroll() {
+  if (rafId) cancelAnimationFrame(rafId)
+  rafId = requestAnimationFrame(updateAnimation)
+}
+
+onMounted(() => {
+  updateAnimation()
+  window.addEventListener('scroll', onScroll, { passive: true })
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll)
+  if (rafId) cancelAnimationFrame(rafId)
+})
 </script>
 
 <style scoped>
@@ -24,12 +56,14 @@
   padding: 5rem 1.5rem 5.5rem;
   text-align: center;
   /* Aplicamos el color de fondo sólido aquí */
-  background-color: #D4D4D3; 
+  background-color: #D4D4D3;
+  overflow: hidden;
 }
 
 .value__inner {
   max-width: 600px; /* Aumentado ligeramente para balancear los textos */
   margin: 0 auto;
+  will-change: opacity, transform;
 }
 
 .value__heading {
