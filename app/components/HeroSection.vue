@@ -1,5 +1,5 @@
 <template>
-  <TheBannerTool class="hero-custom">
+  <TheBannerTool class="hero-custom" :style="{ backgroundImage: `linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0)), url('${baseUrl}images/fondo_hero.png')` }">
     <!-- 
     <template #title>
       <div class="hero__title">
@@ -25,6 +25,8 @@
 </template>
 
 <script setup>
+const config = useRuntimeConfig()
+const baseUrl = config.app.baseURL
 // Nota: Si no usas Nuxt, recuerda importar TheBannerTool manualmente
 import TheBannerTool from './TheBannerTool.vue'
 </script>
@@ -33,7 +35,6 @@ import TheBannerTool from './TheBannerTool.vue'
 /* 1. CONFIGURACIÓN DEL FONDO (Igual que el ejemplo de Cymasuite) */
 .hero-custom {
   min-height: 100vh;
-  background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0)), url('~/assets/img/fondo.png');
   background-size: cover;
   background-position: bottom center; 
 
