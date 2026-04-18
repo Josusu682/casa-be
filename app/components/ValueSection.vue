@@ -5,8 +5,11 @@
         Un espacio para entrenar tu<br />capacidad de sentirte bien.
       </h1>
       <p class="value__body" :style="bodyStyle">
-        No prometemos que desaparezca lo difícil. Trabajamos directamente con el sistema nervioso — el mecanismo que regula cómo tu cuerpo procesa lo que vive. Porque eso se entrena. Y entrenar eso es lo que hace la diferencia.
-      </p>
+  <span>No prometemos que desaparezca lo difícil. Trabajamos directamente con el sistema nervioso</span><br />
+  — el mecanismo que regula cómo tu cuerpo procesa lo que vive.
+  Porque eso se entrena.
+  <br /> Y entrenar eso es lo que hace la diferencia.
+</p>
       <p class="value__tagline" :style="taglineStyle">Entrenamos tu capacidad de sentirte bien.</p>
       
       <a href="#" class="value__btn" :style="btnStyle">
@@ -78,15 +81,15 @@ const btnStyle = computed(() => ({
 }
 
 .value__inner {
-  max-width: 600px; /* Aumentado ligeramente para balancear los textos */
+  max-width: 1000px; /* Aumentado ligeramente para balancear los textos */
   margin: 0 auto;
 }
 
 .value__heading {
   font-family: var(--font-serif, serif);
-  font-weight: 300;
-  font-size: clamp(1.6rem, 4vw, 3.1rem);
-  line-height: 1.35;
+  font-weight: 400;
+  font-size: clamp(1.8rem, 4vw, 3.3rem);
+  line-height: 1;
   color: #394e3c;
   margin-bottom: 1.6rem;
 }
@@ -94,7 +97,7 @@ const btnStyle = computed(() => ({
 .value__body {
   font-family: var(--font-sans, sans-serif);
   font-size: 1.5rem;
-  font-weight: 300;
+  font-weight: 400;
   color: #394e3c;
   line-height: 1.75;
   margin-bottom: 1.2rem;
@@ -102,8 +105,8 @@ const btnStyle = computed(() => ({
 
 .value__tagline {
   font-family: var(--font-sans, sans-serif);
-  font-size: 1.2rem;
-  font-weight: 300;
+  font-size: 1.5rem;
+  font-weight: 400;
   color: #394e3c;
   margin-bottom: 2.5rem;
 }
