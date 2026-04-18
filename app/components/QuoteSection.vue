@@ -145,7 +145,7 @@ const prevSlide = () => {
 
 .quote__text {
   font-family: var(--font-serif, serif);
-  font-style: italic;
+  ;
   font-weight: 300;
   font-size: clamp(1.4rem, 2.8vw, 2.2rem); 
   line-height: 1.4;
@@ -162,7 +162,7 @@ const prevSlide = () => {
   color: #394e3c;
   opacity: 0.8;
   letter-spacing: 0.06em;
-  text-transform: lowercase;
+ 
 }
 
 /* Indicadores */
