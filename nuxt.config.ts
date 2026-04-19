@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   modules: ['@nuxtjs/tailwindcss', '@vercel/analytics'],
   css: ['~/assets/styles/main.css'],
   
-  ssr: false,  // ✅ Renderizado del servidor - requerido para Vercel
+  ssr: true,  // ✅ Renderizado del servidor - requerido para Vercel
 
   app: {
     baseURL: '/', // ✅ Raíz para Vercel
