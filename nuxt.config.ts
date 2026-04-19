@@ -1,7 +1,8 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  modules: ['@nuxtjs/tailwindcss'],
+  srcDir: 'app/',
+  modules: ['@nuxtjs/tailwindcss', '@vercel/analytics'],
   css: ['~/assets/styles/main.css'],
   
   ssr: true,  // ✅ Renderizado del servidor - requerido para Vercel
