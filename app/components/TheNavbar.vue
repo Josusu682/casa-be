@@ -1,5 +1,5 @@
 <template>
-  <nav class="absolute top-0 left-0 w-full z-50 bg-transparent py-4 px-6 md:px-12">
+  <nav class="absolute top-0 left-0 w-full z-0 bg-transparent py-0 px-0 md:px-0">
     <div class="mx-auto flex max-w-screen-xl items-center justify-between">
       
       <button 

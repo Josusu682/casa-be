@@ -1,12 +1,12 @@
 <template>
-  <TheNavbar />
+ 
   <HeroSection />
   <ValueSection />
   <CourseSection />
   <QuoteSection />
   <InstagramSection />
   <WaitlistSection />
-  <FooterSection />
+  
 </template>
 
 <script setup>
