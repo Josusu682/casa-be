@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fintoc – Prueba de pago</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 440px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.8rem;
+    }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #6C63FF, #48BB78);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+    }
+    .logo-text { font-size: 1.3rem; font-weight: 700; color: #2d3748; }
+    .logo-badge {
+      font-size: 0.65rem; font-weight: 600;
+      background: #ebf8ee; color: #276749;
+      border-radius: 999px; padding: 2px 8px;
+      margin-left: 4px;
+    }
+
+    h1 { font-size: 1.4rem; color: #1a202c; margin-bottom: .4rem; }
+    p.subtitle { color: #718096; font-size: .9rem; margin-bottom: 1.8rem; }
+
+    label { display: block; font-size: .82rem; font-weight: 600; color: #4a5568; margin-bottom: .35rem; }
+
+    input, select {
+      width: 100%; padding: .65rem .85rem;
+      border: 1.5px solid #e2e8f0; border-radius: 8px;
+      font-size: .95rem; color: #2d3748;
+      outline: none; transition: border-color .2s;
+      margin-bottom: 1.1rem;
+    }
+    input:focus, select:focus { border-color: #6C63FF; }
+
+    .row { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }
+
+    button {
+      width: 100%; padding: .8rem;
+      background: linear-gradient(135deg, #6C63FF, #5a54e8);
+      color: #fff; border: none; border-radius: 10px;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      margin-top: .3rem;
+    }
+    button:hover { opacity: .92; }
+    button:active { transform: scale(.98); }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+
+    .divider {
+      display: flex; align-items: center; gap: .7rem;
+      color: #a0aec0; font-size: .78rem; margin: 1.2rem 0;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px; background: #e2e8f0;
+    }
+
+    .info-box {
+      background: #f7fafc; border: 1px solid #e2e8f0;
+      border-radius: 10px; padding: 1rem; font-size: .82rem; color: #4a5568;
+    }
+    .info-box strong { color: #2d3748; }
+    .info-box ul { padding-left: 1.1rem; margin-top: .4rem; }
+    .info-box li { margin-bottom: .25rem; }
+
+    #status-msg {
+      margin-top: 1rem; padding: .75rem 1rem;
+      border-radius: 8px; font-size: .88rem;
+      display: none;
+    }
+    #status-msg.error { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
+    #status-msg.loading { background: #ebf8ff; color: #2b6cb0; border: 1px solid #90cdf4; }
+    #status-msg.success { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
+
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid #fff; border-top-color: transparent;
+      border-radius: 50%; animation: spin .7s linear infinite;
+      margin-right: 6px; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer { text-align: center; color: #a0aec0; font-size: .75rem; margin-top: 1.5rem; }
+    footer a { color: #6C63FF; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">&#x1F4B3;</div>
+    <span class="logo-text">Fintoc Test</span>
+    <span class="logo-badge">SANDBOX</span>
+  </div>
+
+  <h1>Realizar un pago</h1>
+  <p class="subtitle">Completa los datos y paga con tu banco directamente.</p>
+
+  <form id="payment-form">
+    <label for="product_name">Descripción del producto / servicio</label>
+    <input id="product_name" name="product_name" type="text"
+           placeholder="ej: Plan Pro mensual" value="Plan Pro mensual" />
+
+    <div class="row">
+      <div>
+        <label for="amount">Monto</label>
+        <input id="amount" name="amount" type="number"
+               min="1" step="1" placeholder="5000" value="5000" required />
+      </div>
+      <div>
+        <label for="currency">Moneda</label>
+        <select id="currency" name="currency">
+          <option value="clp" selected>CLP</option>
+          <option value="mxn">MXN</option>
+          <option value="usd">USD</option>
+        </select>
+      </div>
+    </div>
+
+    <label for="customer_email">Email del cliente (opcional)</label>
+    <input id="customer_email" name="customer_email" type="email"
+           placeholder="cliente@ejemplo.com" />
+
+    <button type="submit" id="pay-btn">
+      Pagar con Fintoc
+    </button>
+  </form>
+
+  <div id="status-msg"></div>
+
+  <div class="divider">cómo funciona</div>
+
+  <div class="info-box">
+    <strong>Flujo de prueba:</strong>
+    <ul>
+      <li>Tu backend crea una <em>Checkout Session</em> en Fintoc.</li>
+      <li>Recibes una <code>redirect_url</code> y te redirigen al checkout de Fintoc.</li>
+      <li>El usuario paga; Fintoc te notifica por <strong>webhook</strong>.</li>
+      <li>Tú confirmas el pago y ejecutas tu lógica de negocio.</li>
+    </ul>
+  </div>
+</div>
+
+<footer>
+  Docs: <a href="https://docs.fintoc.com" target="_blank">docs.fintoc.com</a>
+  &nbsp;·&nbsp; Modo sandbox – no se realizan cobros reales
+</footer>
+
+<script>
+  const form = document.getElementById('payment-form');
+  const btn  = document.getElementById('pay-btn');
+  const msg  = document.getElementById('status-msg');
+
+  function showMsg(text, type) {
+    msg.textContent = text;
+    msg.className = type;
+    msg.style.display = 'block';
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Creando sesión...';
+    showMsg('Conectando con Fintoc...', 'loading');
+
+    const body = {
+      amount:         Number(document.getElementById('amount').value),
+      currency:       document.getElementById('currency').value,
+      product_name:   document.getElementById('product_name').value || undefined,
+      customer_email: document.getElementById('customer_email').value || undefined,
+    };
+
+    try {
+      const res  = await fetch('/create-session', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      });
+      const data = await res.json();
+
+      console.log('[DEBUG] Respuesta Fintoc:', JSON.stringify(data, null, 2));
+
+      if (!res.ok) {
+        const detail = data.detail
+          ? (typeof data.detail === 'object' ? JSON.stringify(data.detail) : data.detail)
+          : '';
+        throw new Error((data.error || 'Error desconocido') + (detail ? ' — ' + detail : ''));
+      }
+
+      showMsg('Sesion creada. Redirigiendo al checkout de Fintoc...', 'success');
+
+      // Guardamos el session_id en sessionStorage por si queremos consultarlo al volver
+      if (data.session_id) sessionStorage.setItem('fintoc_session_id', data.session_id);
+
+      // Redirigir al usuario al checkout de Fintoc
+      setTimeout(() => { window.location.href = data.redirect_url; }, 800);
+
+    } catch (err) {
+      console.error('[DEBUG] Error completo:', err);
+      showMsg('Error: ' + err.message, 'error');
+      btn.disabled = false;
+      btn.textContent = 'Pagar con Fintoc';
+    }
+  });
+</script>
+</body>
+</html>
