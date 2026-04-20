@@ -12,35 +12,24 @@
         </NuxtLink>
 
         <div class="navbar__links">
-          <NuxtLink to="/" class="navbar__nav-link">Conoce Casa BE</NuxtLink>
-          <NuxtLink to="/entrenamiento" class="navbar__nav-link">Tu Entrenamiento</NuxtLink>
+          <NuxtLink to="/nosotros" class="navbar__nav-link">Conoce Casa BE</NuxtLink>
+          <NuxtLink to="/#entrenamiento" class="navbar__nav-link">Tu Entrenamiento</NuxtLink>
           <NuxtLink to="/fundacion" class="navbar__nav-link">Fundación BE</NuxtLink>
           <NuxtLink to="/tienda" class="navbar__nav-link">Tienda</NuxtLink>
           <NuxtLink to="/aprende" class="navbar__nav-link">Aprende más</NuxtLink>
-          <NuxtLink to="/conversemos" class="navbar__nav-link">Conversemos</NuxtLink>
+          <NuxtLink to="/#contacto" class="navbar__nav-link">Conversemos</NuxtLink>
         </div>
+
+        <a href="#talleres" class="navbar__cta">Ver próximo taller</a>
       </div>
     </div>
 
     <!-- Estado SCROLLED: barra compacta con hamburger -->
     <div class="navbar__compact">
-      <button
-        @click="toggleMenu"
-        class="relative z-[60] flex flex-col justify-center items-center w-10 h-10 gap-1.5 focus:outline-none"
-        aria-label="Abrir menú"
-      >
-        <div
-          class="w-10 h-[4px] rounded-full transition-all duration-300 bg-[#394e3c]"
-          :class="isMenuOpen ? 'rotate-45 translate-y-[8px]' : ''"
-        ></div>
-        <div
-          class="w-10 h-[4px] rounded-full transition-all duration-300 bg-[#394e3c]"
-          :class="isMenuOpen ? 'opacity-0 translate-x-4' : ''"
-        ></div>
-        <div
-          class="w-10 h-[4px] rounded-full transition-all duration-300 bg-[#394e3c]"
-          :class="isMenuOpen ? '-rotate-45 -translate-y-[8px]' : ''"
-        ></div>
+      <button @click="toggleMenu" class="navbar__burger" aria-label="Abrir menú">
+        <span class="navbar__line" :class="{ 'navbar__line--1-open': isMenuOpen, 'navbar__line--light': useLightBurger }"></span>
+        <span class="navbar__line" :class="{ 'navbar__line--2-open': isMenuOpen, 'navbar__line--light': useLightBurger }"></span>
+        <span class="navbar__line" :class="{ 'navbar__line--3-open': isMenuOpen, 'navbar__line--light': useLightBurger }"></span>
       </button>
 
       <NuxtLink to="/" class="navbar__logo-link">
@@ -51,12 +40,12 @@
     <!-- Overlay menú fullscreen -->
     <div class="navbar__overlay" :class="{ 'navbar__overlay--open': isMenuOpen }">
       <div class="navbar__menu">
-        <NuxtLink to="/" class="navbar__overlay-link" @click="toggleMenu">Conoce Casa BE</NuxtLink>
-        <NuxtLink to="/entrenamiento" class="navbar__overlay-link" @click="toggleMenu">Tu Entrenamiento</NuxtLink>
+        <NuxtLink to="/nosotros" class="navbar__overlay-link" @click="toggleMenu">Conoce Casa BE</NuxtLink>
+        <NuxtLink to="/#entrenamiento" class="navbar__overlay-link" @click="toggleMenu">Tu Entrenamiento</NuxtLink>
         <NuxtLink to="/fundacion" class="navbar__overlay-link" @click="toggleMenu">Fundación BE</NuxtLink>
         <NuxtLink to="/tienda" class="navbar__overlay-link" @click="toggleMenu">Tienda</NuxtLink>
         <NuxtLink to="/aprende" class="navbar__overlay-link" @click="toggleMenu">Aprende más</NuxtLink>
-        <NuxtLink to="/conversemos" class="navbar__overlay-link" @click="toggleMenu">Conversemos</NuxtLink>
+        <NuxtLink to="/#contacto" class="navbar__overlay-link" @click="toggleMenu">Conversemos</NuxtLink>
       </div>
     </div>
 
@@ -66,8 +55,10 @@
 <script setup>
 const isMenuOpen = ref(false)
 const isScrolled = ref(false)
+const isOverDarkSection = ref(true)
 
 let threshold = 0
+let sectionObserver = null
 
 function onScroll() {
   isScrolled.value = window.scrollY > threshold
@@ -78,15 +69,30 @@ function setThreshold() {
   onScroll()
 }
 
+const useLightBurger = computed(() => !isScrolled.value || isOverDarkSection.value)
+
 onMounted(() => {
   setThreshold()
   window.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('resize', setThreshold, { passive: true })
+
+  sectionObserver = new IntersectionObserver(
+    (entries) => {
+      isOverDarkSection.value = entries.some(e => e.isIntersecting)
+    },
+    { threshold: 0.05 }
+  )
+  const darkEls = [
+    document.querySelector('.hero-custom'),
+    document.querySelector('.footer')
+  ]
+  darkEls.forEach(el => el && sectionObserver.observe(el))
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
   window.removeEventListener('resize', setThreshold)
+  sectionObserver?.disconnect()
   document.body.style.overflow = 'auto'
 })
 
@@ -121,15 +127,16 @@ const toggleMenu = () => {
 .navbar__full-inner {
   max-width: 1300px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
   align-items: center;
+  gap: 2rem;
 }
 
 .navbar__brand {
   display: block;
-  height: 56px;
+  height: 32px;
   flex-shrink: 0;
+  margin-right: 1rem;
 }
 .navbar__brand-img {
   height: 100%;
@@ -141,11 +148,11 @@ const toggleMenu = () => {
   display: flex;
   align-items: center;
   gap: 2rem;
-  justify-content: center;
+  flex: 1;
 }
 
 .navbar__nav-link {
-  font-family: 'Acumin', sans-serif;
+  font-family: var(--font-sans, sans-serif);
   font-size: 0.95rem;
   font-weight: 400;
   color: rgba(255, 255, 255, 0.9);
@@ -158,13 +165,33 @@ const toggleMenu = () => {
   color: #ffffff;
 }
 
+.navbar__cta {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-family: var(--font-sans, sans-serif);
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border-radius: 100px;
+  padding: 0.5rem 1.4rem;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  white-space: nowrap;
+}
+.navbar__cta:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: #fff;
+  color: #fff;
+}
+
 /* ── COMPACT NAV (scrolled state) ── */
 .navbar__compact {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  padding: 0.5rem 2.5rem;
+  padding: 1rem 2.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -177,6 +204,40 @@ const toggleMenu = () => {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
+}
+
+.navbar__burger {
+  position: relative;
+  z-index: 60;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px;
+}
+
+.navbar__line {
+  display: block;
+  width: 28px;
+  height: 1.5px;
+  border-radius: 2px;
+  background-color: #394e3c;
+  transition: transform 0.35s ease, opacity 0.35s ease, background-color 0.3s ease;
+}
+.navbar__line--light {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+.navbar__line--1-open {
+  transform: rotate(45deg) translate(5.5px, 5.5px);
+}
+.navbar__line--2-open {
+  opacity: 0;
+  transform: translateX(8px);
+}
+.navbar__line--3-open {
+  transform: rotate(-45deg) translate(5.5px, -5.5px);
 }
 
 .navbar__logo-link {
@@ -215,7 +276,7 @@ const toggleMenu = () => {
 }
 
 .navbar__overlay-link {
-  font-family: 'Acumin', sans-serif;
+  font-family: var(--font-sans, sans-serif);
   font-size: clamp(1.8rem, 4vw, 3rem);
   font-weight: 300;
   color: #394e3c;
@@ -237,6 +298,12 @@ const toggleMenu = () => {
     transform: translateY(0) !important;
     background-color: transparent;
     box-shadow: none;
+  }
+  .navbar__line {
+    background-color: rgba(255, 255, 255, 0.9);
+  }
+  .navbar--solid .navbar__line:not(.navbar__line--light) {
+    background-color: #394e3c;
   }
 }
 </style>

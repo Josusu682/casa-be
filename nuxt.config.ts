@@ -2,14 +2,26 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   srcDir: 'app/',
+
+  nitro: {
+    externals: {
+      external: ['ioredis'],
+    }
+  },
+
+  runtimeConfig: {
+    fintocSecretKey:     '',
+    fintocWebhookSecret: '',
+    fintocSuccessUrl:    '',
+    fintocCancelUrl:     '',
+  },
   modules: ['@nuxtjs/tailwindcss', '@vercel/analytics'],
   css: ['~/assets/styles/main.css'],
   
-  ssr: true,  // ✅ Renderizado del servidor - requerido para Vercel
+  ssr: false,
 
   app: {
-    baseURL: '/', // ✅ Raíz para Vercel
-    buildAssetsDir: 'assets', 
+    buildAssetsDir: 'assets',
     head: {
       title: 'Casa BE',
       meta: [
