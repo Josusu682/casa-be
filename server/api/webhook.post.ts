@@ -38,14 +38,21 @@ export default defineEventHandler(async (event) => {
 
   // ── Manejar eventos ────────────────────────────────────────────────────────
   console.log('[Webhook] tipo:', payload.type, '| data:', JSON.stringify(payload.data))
+  console.log('[Webhook] PAYLOAD COMPLETO:', JSON.stringify(payload))
   try {
     switch (payload.type) {
 
       case 'checkout_session.finished': {
         const sessionId = payload.data?.id
-        const piStatus  = payload.data?.payment_resource?.payment_intent?.status
+        // Fintoc puede poner el status directamente en data.status o anidado
+        const rawStatus =
+          payload.data?.status ??
+          payload.data?.payment_intent?.status ??
+          payload.data?.payment_resource?.payment_intent?.status
+        const succeededStatuses = ['succeeded', 'paid', 'finished', 'completed']
+        const status = succeededStatuses.includes(rawStatus) ? 'succeeded' : (rawStatus ?? 'pending')
+        console.log('[Webhook] checkout_session.finished | sessionId:', sessionId, '| rawStatus:', rawStatus, '| status:', status)
         if (sessionId) {
-          const status = piStatus === 'succeeded' ? 'succeeded' : (piStatus ?? 'finished')
           await getRedis().set(
             `fintoc:session:${sessionId}`,
             JSON.stringify({ status, timestamp: Date.now() }),

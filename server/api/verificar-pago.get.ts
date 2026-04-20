@@ -7,11 +7,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'session_id requerido.' })
   }
 
-  const data = await getRedis().get<{ status: string; timestamp: number }>(`fintoc:session:${session_id}`)
+  const raw = await getRedis().get(`fintoc:session:${session_id}`)
 
-  if (!data) {
+  if (!raw) {
     return { found: false, status: null }
   }
 
+  const data = JSON.parse(raw) as { status: string; timestamp: number }
   return { found: true, status: data.status }
 })
