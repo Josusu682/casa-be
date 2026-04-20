@@ -39,14 +39,23 @@
           <div class="product-card__footer">
             <span class="product-card__price">VALOR: {{ product.price }}</span>
             
-            <a :href="product.link" class="product-card__btn">
-              <span>Ver más</span>
-              <svg width="30" height="12" viewBox="0 0 30 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <button
+              class="product-card__btn"
+              :class="{ 'product-card__btn--loading': loadingKey === product.tag + product.price }"
+              :disabled="!!loadingKey"
+              @click="handleBuy(product)"
+            >
+              <span>{{ loadingKey === product.tag + product.price ? 'Cargando...' : 'Ver más' }}</span>
+              <svg v-if="loadingKey !== product.tag + product.price" width="30" height="12" viewBox="0 0 30 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M24 1L29 6L24 11" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M29 6L1 6" stroke="currentColor" stroke-width="0.8" stroke-linecap="round"/>
               </svg>
-            </a>
+            </button>
           </div>
+
+          <p v-if="errorKey === product.tag + product.price" class="product-card__error">
+            No se pudo iniciar el pago. Intenta de nuevo.
+          </p>
         </article>
       </div>
 
@@ -55,15 +64,19 @@
 </template>
 
 <script setup>
-// Aquí defines los productos. Cambia las rutas de las imágenes por las tuyas.
+import { ref } from 'vue'
+
+const loadingKey = ref(null)
+const errorKey   = ref(null)
+
 const products = [
   {
-    image: '/images/referencia-producto-1.png', 
+    image: '/images/referencia-producto-1.png',
     tag: 'HERRAMIENTA FÍSICA',
     title: 'Registro de<br>estado corporal',
     desc: 'Para nombrar lo que sientes antes de que se desborde. Entrena la interocepción en la vida cotidiana.',
     price: '$10.000',
-    link: '#' // URL a la que llevará el botón "Ver más"
+    amount: 10000,
   },
   {
     image: '/images/referencia-producto-2.png',
@@ -71,7 +84,7 @@ const products = [
     title: 'Práctica de<br>regulación - 5 min',
     desc: 'Audio guiado calibrado para usarse cuando el sistema no puede esperar. Para el baño del trabajo, el auto, donde sea.',
     price: '$5.000',
-    link: '#'
+    amount: 5000,
   },
   {
     image: '/images/referencia-producto-3.png',
@@ -79,17 +92,53 @@ const products = [
     title: 'Kit<br>Primeros pasos',
     desc: 'Herramientas físicas y digitales para quien está en déficit profundo y no sabe por dónde empezar.',
     price: '$35.000',
-    link: '#'
+    amount: 35000,
   },
-   {
+  {
     image: '/images/referencia-producto-4.png',
     tag: 'HERRAMIENTA DIGITAL',
     title: 'Mapa de señales<br>del cuerpo',
     desc: 'Para aprender a leer las señales físicas antes de que el sistema colapse. Psicoeducación aplicada.',
     price: '$15.000',
-    link: '#'
+    amount: 15000,
   }
 ]
+
+async function handleBuy(product) {
+  const key = product.tag + product.price
+  if (loadingKey.value) return
+
+  loadingKey.value = key
+  errorKey.value   = null
+
+  try {
+    const res  = await fetch('/api/create-session', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount:       product.amount,
+        currency:     'clp',
+        product_name: product.title.replace(/<br\s*\/?>/gi, ' '),
+      }),
+    })
+    const data = await res.json()
+
+    if (!res.ok) throw new Error(data.error || 'Error al crear sesión')
+
+    sessionStorage.setItem('fintoc_session_id',    data.session_id)
+    sessionStorage.setItem('fintoc_product_name',  product.title.replace(/<br\s*\/?>/gi, ' '))
+    sessionStorage.setItem('fintoc_product_price', product.price)
+
+    window.location.href = data.redirect_url
+
+  } catch (err) {
+    console.error('[Fintoc]', err)
+    errorKey.value = key
+    setTimeout(() => { errorKey.value = null }, 4000)
+  } finally {
+    loadingKey.value = null
+  }
+}
 </script>
 
 <style scoped>
@@ -234,6 +283,29 @@ const products = [
 
 .product-card__btn:hover {
   color: #394e3c; /* Oscurece la letra y la flecha al pasar el mouse */
+}
+
+button.product-card__btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.product-card__btn--loading {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.product-card__btn:disabled {
+  cursor: not-allowed;
+}
+
+.product-card__error {
+  font-family: 'Acumin Concept', sans-serif;
+  font-size: 0.8rem;
+  color: #8c3030;
+  margin-top: 0.5rem;
 }
 
 /* Responsivo para celulares y tablets */
