@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
           await getRedis().set(
             `fintoc:session:${sessionId}`,
             JSON.stringify({ status, timestamp: Date.now() }),
-            { ex: 86400 }
+            'EX', 86400
           )
         }
         break
@@ -61,7 +61,7 @@ export default defineEventHandler(async (event) => {
           await getRedis().set(
             `fintoc:session:${sessionId}`,
             JSON.stringify({ status: 'succeeded', timestamp: Date.now() }),
-            { ex: 86400 }
+            'EX', 86400
           )
         }
         break
@@ -74,7 +74,7 @@ export default defineEventHandler(async (event) => {
           await getRedis().set(
             `fintoc:session:${sessionId}`,
             JSON.stringify({ status: 'failed', timestamp: Date.now() }),
-            { ex: 86400 }
+            'EX', 86400
           )
         }
         break
