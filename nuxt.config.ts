@@ -20,6 +20,12 @@ export default defineNuxtConfig({
   
   ssr: false,
 
+  vite: {
+    server: {
+      allowedHosts: ['choosy-tropics-muck.ngrok-free.dev']
+    }
+  },
+
   app: {
     buildAssetsDir: 'assets',
     head: {
