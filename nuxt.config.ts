@@ -26,10 +26,6 @@ export default defineNuxtConfig({
   modules: ['@nuxtjs/tailwindcss', '@vercel/analytics'],
   css: ['~/assets/styles/main.css'],
   
-  routeRules: {
-    '/**': { ssr: false },
-  },
-
   vite: {
     server: {
       allowedHosts: ['choosy-tropics-muck.ngrok-free.dev']

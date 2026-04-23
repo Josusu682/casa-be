@@ -1,18 +1,21 @@
 export const useAuth = () => {
   const { $supabase } = useNuxtApp()
-  const user = useState<any>('auth.user')
-  const role = useState<string>('auth.role')
+  const sb = $supabase as any
+  const user = useState<any>('auth.user', () => null)
+  const role = useState<string>('auth.role', () => 'customer')
   const isAdmin = computed(() => role.value === 'admin')
 
   const login = async (email: string, password: string) => {
-    const { error } = await $supabase.auth.signInWithPassword({ email, password })
+    if (!sb) return
+    const { error } = await sb.auth.signInWithPassword({ email, password })
     if (error) throw error
   }
 
   const register = async (email: string, password: string) => {
     const config = useRuntimeConfig()
     const siteUrl = (config.public.siteUrl as string) || 'https://casa-be.cl'
-    const { error } = await $supabase.auth.signUp({
+    if (!sb) return
+    const { error } = await sb.auth.signUp({
       email,
       password,
       options: { emailRedirectTo: `${siteUrl}/login` },
@@ -21,11 +24,13 @@ export const useAuth = () => {
   }
 
   const logout = async () => {
-    await $supabase.auth.signOut()
+    if (!sb) return
+    await sb.auth.signOut()
   }
 
   const getToken = async (): Promise<string | null> => {
-    const { data: { session } } = await $supabase.auth.getSession()
+    if (!sb) return null
+    const { data: { session } } = await sb.auth.getSession()
     return session?.access_token ?? null
   }
 
