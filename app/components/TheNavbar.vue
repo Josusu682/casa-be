@@ -20,7 +20,13 @@
           <NuxtLink to="/conversemos" class="navbar__nav-link">Conversemos</NuxtLink>
         </div>
         <div class="navbar__auth">
-          <NuxtLink v-if="user" to="/mi-cuenta" class="navbar__nav-link">Mi cuenta</NuxtLink>
+          <div v-if="user" class="navbar__account" @mouseenter="dropdownOpen = true" @mouseleave="dropdownOpen = false">
+            <button class="navbar__nav-link navbar__account-btn">Mi cuenta</button>
+            <div class="navbar__dropdown" :class="{ 'navbar__dropdown--open': dropdownOpen }">
+              <span class="navbar__dropdown-email">{{ user.email }}</span>
+              <button class="navbar__dropdown-logout" @click="handleLogout">Cerrar sesión</button>
+            </div>
+          </div>
           <NuxtLink v-else to="/login" class="navbar__nav-link">Ingresar</NuxtLink>
         </div>
       </div>
@@ -61,7 +67,10 @@
         <NuxtLink to="/tienda" class="navbar__overlay-link" @click="toggleMenu">Tienda</NuxtLink>
         <NuxtLink to="/aprende" class="navbar__overlay-link" @click="toggleMenu">Aprende más</NuxtLink>
         <NuxtLink to="/conversemos" class="navbar__overlay-link" @click="toggleMenu">Conversemos</NuxtLink>
-        <NuxtLink v-if="user" to="/mi-cuenta" class="navbar__overlay-link" @click="toggleMenu">Mi cuenta</NuxtLink>
+        <template v-if="user">
+          <span class="navbar__overlay-email">{{ user.email }}</span>
+          <button class="navbar__overlay-link navbar__overlay-logout" @click="handleLogout">Cerrar sesión</button>
+        </template>
         <NuxtLink v-else to="/login" class="navbar__overlay-link" @click="toggleMenu">Ingresar</NuxtLink>
       </div>
     </div>
@@ -70,10 +79,20 @@
 </template>
 
 <script setup>
-const { user } = useAuth()
+const { user, logout } = useAuth()
+const router = useRouter()
 
-const isMenuOpen = ref(false)
-const isScrolled = ref(false)
+const isMenuOpen  = ref(false)
+const isScrolled  = ref(false)
+const dropdownOpen = ref(false)
+
+async function handleLogout() {
+  await logout()
+  dropdownOpen.value = false
+  isMenuOpen.value   = false
+  document.body.style.overflow = 'auto'
+  router.push('/')
+}
 
 let threshold = 0
 
@@ -155,6 +174,75 @@ const toggleMenu = () => {
 .navbar__auth {
   display: flex;
   justify-content: flex-end;
+}
+
+/* ── ACCOUNT DROPDOWN ── */
+.navbar__account {
+  position: relative;
+}
+.navbar__account-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.navbar__dropdown {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  background: #fff;
+  border: 1px solid rgba(57, 78, 60, 0.12);
+  min-width: 220px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 100;
+}
+.navbar__dropdown--open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.navbar__dropdown-email {
+  font-family: 'Acumin Concept', sans-serif;
+  font-size: 0.85rem;
+  color: #394e3c;
+  opacity: 0.6;
+  word-break: break-all;
+}
+.navbar__dropdown-logout {
+  background: none;
+  border: none;
+  font-family: 'Acumin Concept', sans-serif;
+  font-size: 0.85rem;
+  color: #394e3c;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+.navbar__dropdown-logout:hover { opacity: 1; }
+
+/* ── OVERLAY EMAIL / LOGOUT ── */
+.navbar__overlay-email {
+  font-family: 'Acumin Concept', sans-serif;
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  color: #394e3c;
+  opacity: 0.45;
+  word-break: break-all;
+  text-align: center;
+}
+.navbar__overlay-logout {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
 }
 
 .navbar__nav-link {

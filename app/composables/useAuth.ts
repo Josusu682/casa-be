@@ -10,7 +10,13 @@ export const useAuth = () => {
   }
 
   const register = async (email: string, password: string) => {
-    const { error } = await $supabase.auth.signUp({ email, password })
+    const config = useRuntimeConfig()
+    const siteUrl = (config.public.siteUrl as string) || 'https://casa-be.cl'
+    const { error } = await $supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: `${siteUrl}/login` },
+    })
     if (error) throw error
   }
 

@@ -18,8 +18,9 @@ export default defineNuxtConfig({
     supabaseServiceKey:  '',
     geminiApiKey:        '',
     public: {
-      supabaseUrl:      process.env.NEXT_PUBLIC_STORAGE_SUPABASE_URL      || '',
-      supabaseAnonKey:  process.env.NEXT_PUBLIC_STORAGE_SUPABASE_PUBLISHABLE_KEY || '',
+      supabaseUrl:      process.env.NEXT_PUBLIC_STORAGE_SUPABASE_URL               || '',
+      supabaseAnonKey:  process.env.NEXT_PUBLIC_STORAGE_SUPABASE_ANON_KEY          || '',
+      siteUrl:          process.env.NUXT_PUBLIC_SITE_URL                           || 'https://casa-be.cl',
     },
   },
   modules: ['@nuxtjs/tailwindcss', '@vercel/analytics'],
