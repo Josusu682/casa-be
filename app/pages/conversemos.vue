@@ -173,49 +173,20 @@ async function sendMessage() {
     const token = await getToken()
     if (!token) { router.push('/login'); return }
 
-    const res = await fetch('/api/chat', {
+    const res = await $fetch<{ reply: string; conversationId: number }>('/api/chat', {
       method:  'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
+      headers: { Authorization: `Bearer ${token}` },
+      body: {
         messages:       messages.value.map(m => ({ role: m.role, content: m.content })),
         conversationId: conversationId.value,
-      }),
+      },
     })
 
-    if (!res.ok) throw new Error('Error del servidor.')
+    conversationId.value = res.conversationId
 
-    const reader  = res.body!.getReader()
-    const decoder = new TextDecoder()
-    let buffer    = ''
+    await typewrite(res.reply)
 
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-
-      buffer += decoder.decode(value, { stream: true })
-      const lines = buffer.split('\n')
-      buffer = lines.pop() ?? ''
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue
-        const data = line.slice(6).trim()
-        if (data === '[DONE]') break
-        try {
-          const parsed = JSON.parse(data)
-          if (parsed?.type === 'meta') {
-            conversationId.value = parsed.conversationId
-          } else {
-            streamingText.value += parsed
-            scrollToBottom()
-          }
-        } catch { /* chunk parcial */ }
-      }
-    }
-
-    messages.value.push({ role: 'assistant', content: streamingText.value, timestamp: new Date() })
+    messages.value.push({ role: 'assistant', content: res.reply, timestamp: new Date() })
 
   } catch {
     messages.value.push({
@@ -229,6 +200,17 @@ async function sendMessage() {
     scrollToBottom(true)
     nextTick(() => inputEl.value?.focus())
   }
+}
+
+async function typewrite(text: string) {
+  for (let i = 0; i < text.length; i++) {
+    streamingText.value += text[i]
+    if (i % 4 === 0) {
+      scrollToBottom()
+      await new Promise(resolve => setTimeout(resolve, 12))
+    }
+  }
+  scrollToBottom()
 }
 </script>
 
