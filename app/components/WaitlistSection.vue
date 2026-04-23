@@ -19,11 +19,12 @@
           required 
         />
         
-        <button type="submit" class="waitlist__btn">
-          <img src="/images/flecha_linea.png" alt="Enviar" class="waitlist__arrow" />
+        <button type="submit" class="waitlist__btn" :disabled="loading">
+          <img src="/images/flecha_linea.png" alt="Enviar" class="waitlist__arrow" :style="{ opacity: loading ? 0.4 : 1 }" />
         </button>
 
       </form>
+      <p v-if="message" class="waitlist__message" :style="leftStyle">{{ message }}</p>
     </div>
   </section>
 </template>
@@ -59,16 +60,34 @@ const slideX = computed(() => OFFSET * (outProg.value - inProg.value))
 const leftStyle = computed(() => ({ transform: `translateX(${slideX.value}px)` }))
 const rightStyle = computed(() => ({ transform: `translateX(${slideX.value * 0.7}px)` }))
 
-// Variable reactiva para guardar lo que el usuario escriba
-const email = ref('')
+const email   = ref('')
+const loading = ref(false)
+const message = ref('')
 
-// Función que se ejecuta al presionar la flecha o la tecla Enter
-const registrarMail = () => {
-  console.log('Mail a registrar:', email.value)
-  // Aquí luego conectarás tu backend o servicio de correos (ej. Resend, Mailchimp)
-  
-  alert('¡Gracias! Te avisaremos al correo: ' + email.value)
-  email.value = '' // Limpiamos el campo después de enviar
+const registrarMail = async () => {
+  if (loading.value) return
+  loading.value = true
+  message.value = ''
+
+  try {
+    const res = await fetch('/api/waitlist', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email: email.value }),
+    })
+    const data = await res.json()
+
+    if (!res.ok) throw new Error(data.statusMessage || 'Error')
+
+    message.value = data.already
+      ? 'Ya estás en la lista.'
+      : '¡Listo! Te avisamos cuando abra el siguiente taller.'
+    email.value = ''
+  } catch {
+    message.value = 'Algo salió mal. Intenta de nuevo.'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -164,6 +183,15 @@ const registrarMail = () => {
   height: auto;
   object-fit: contain;
   display: block; /* Evita márgenes fantasma debajo de las imágenes */
+}
+
+.waitlist__message {
+  font-family: var(--font-inter);
+  font-size: 1rem;
+  font-weight: 300;
+  color: #394e3c;
+  margin-top: 1.5rem;
+  width: 100%;
 }
 
 /* RESPONSIVO */

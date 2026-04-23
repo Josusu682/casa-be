@@ -66,6 +66,7 @@
 <script setup>
 import { ref } from 'vue'
 
+const { user } = useAuth()
 const loadingKey = ref(null)
 const errorKey   = ref(null)
 
@@ -119,6 +120,7 @@ async function handleBuy(product) {
         amount:       product.amount,
         currency:     'clp',
         product_name: product.title.replace(/<br\s*\/?>/gi, ' '),
+        user_id:      user.value?.id ?? null,
       }),
     })
     const data = await res.json()

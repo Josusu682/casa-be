@@ -1,8 +1,10 @@
+import { getRedis } from '../utils/redis'
+
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const body   = await readBody(event)
 
-  const { amount, currency = 'clp', product_name } = body
+  const { amount, currency = 'clp', product_name, user_id } = body
 
   if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
     throw createError({
@@ -32,6 +34,10 @@ export default defineEventHandler(async (event) => {
         body: payload,
       }
     )
+
+    if (user_id && typeof user_id === 'string') {
+      await getRedis().set(`fintoc:user:${data.id}`, user_id, 'EX', 86400)
+    }
 
     return {
       session_id:   data.id,

@@ -5,7 +5,7 @@ export default defineNuxtConfig({
 
   nitro: {
     externals: {
-      external: ['ioredis'],
+      external: ['ioredis', '@supabase/supabase-js'],
     }
   },
 
@@ -14,6 +14,13 @@ export default defineNuxtConfig({
     fintocWebhookSecret: '',
     fintocSuccessUrl:    '',
     fintocCancelUrl:     '',
+    supabaseUrl:         '',
+    supabaseServiceKey:  '',
+    geminiApiKey:        '',
+    public: {
+      supabaseUrl:      '',
+      supabaseAnonKey:  '',
+    },
   },
   modules: ['@nuxtjs/tailwindcss', '@vercel/analytics'],
   css: ['~/assets/styles/main.css'],

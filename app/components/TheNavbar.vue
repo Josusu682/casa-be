@@ -19,6 +19,10 @@
           <NuxtLink to="/aprende" class="navbar__nav-link">Aprende más</NuxtLink>
           <NuxtLink to="/conversemos" class="navbar__nav-link">Conversemos</NuxtLink>
         </div>
+        <div class="navbar__auth">
+          <NuxtLink v-if="user" to="/mi-cuenta" class="navbar__nav-link">Mi cuenta</NuxtLink>
+          <NuxtLink v-else to="/login" class="navbar__nav-link">Ingresar</NuxtLink>
+        </div>
       </div>
     </div>
 
@@ -57,6 +61,8 @@
         <NuxtLink to="/tienda" class="navbar__overlay-link" @click="toggleMenu">Tienda</NuxtLink>
         <NuxtLink to="/aprende" class="navbar__overlay-link" @click="toggleMenu">Aprende más</NuxtLink>
         <NuxtLink to="/conversemos" class="navbar__overlay-link" @click="toggleMenu">Conversemos</NuxtLink>
+        <NuxtLink v-if="user" to="/mi-cuenta" class="navbar__overlay-link" @click="toggleMenu">Mi cuenta</NuxtLink>
+        <NuxtLink v-else to="/login" class="navbar__overlay-link" @click="toggleMenu">Ingresar</NuxtLink>
       </div>
     </div>
 
@@ -64,6 +70,8 @@
 </template>
 
 <script setup>
+const { user } = useAuth()
+
 const isMenuOpen = ref(false)
 const isScrolled = ref(false)
 
@@ -142,6 +150,11 @@ const toggleMenu = () => {
   align-items: center;
   gap: 2rem;
   justify-content: center;
+}
+
+.navbar__auth {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .navbar__nav-link {

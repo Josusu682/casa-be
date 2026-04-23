@@ -1,5 +1,6 @@
 import { createHmac } from 'node:crypto'
 import { getRedis } from '../utils/redis'
+import { getSupabase } from '../utils/supabase'
 
 export default defineEventHandler(async (event) => {
   const config    = useRuntimeConfig()
@@ -62,6 +63,15 @@ export default defineEventHandler(async (event) => {
             JSON.stringify({ status: 'succeeded', timestamp: Date.now() }),
             'EX', 86400
           )
+          const userId = await getRedis().get(`fintoc:user:${sessionId}`)
+          await getSupabase().from('orders').upsert({
+            session_id:   sessionId,
+            user_id:      userId ?? null,
+            amount:       payload.data?.amount ?? null,
+            currency:     payload.data?.currency ?? 'clp',
+            status:       'succeeded',
+            fintoc_data:  payload.data ?? null,
+          } as any, { onConflict: 'session_id' })
         }
         break
       }
@@ -75,13 +85,22 @@ export default defineEventHandler(async (event) => {
             JSON.stringify({ status: 'failed', timestamp: Date.now() }),
             'EX', 86400
           )
+          const userId = await getRedis().get(`fintoc:user:${sessionId}`)
+          await getSupabase().from('orders').upsert({
+            session_id:   sessionId,
+            user_id:      userId ?? null,
+            amount:       payload.data?.amount ?? null,
+            currency:     payload.data?.currency ?? 'clp',
+            status:       'failed',
+            fintoc_data:  payload.data ?? null,
+          } as any, { onConflict: 'session_id' })
         }
         break
       }
 
     }
   } catch (err) {
-    console.error('[Webhook] Error guardando en Redis:', err)
+    console.error('[Webhook] Error procesando evento:', err)
   }
 
   // Fintoc espera siempre un 200
