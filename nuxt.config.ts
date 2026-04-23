@@ -3,10 +3,14 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   srcDir: 'app/',
 
+  future: {
+    compatibilityVersion: 4,
+  },
+
   nitro: {
     externals: {
       external: ['ioredis', '@supabase/supabase-js'],
-    }
+    },
   },
 
   runtimeConfig: {
