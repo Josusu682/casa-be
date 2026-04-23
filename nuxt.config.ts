@@ -18,8 +18,8 @@ export default defineNuxtConfig({
     supabaseServiceKey:  '',
     geminiApiKey:        '',
     public: {
-      supabaseUrl:      '',
-      supabaseAnonKey:  '',
+      supabaseUrl:      process.env.NEXT_PUBLIC_STORAGE_SUPABASE_URL      || '',
+      supabaseAnonKey:  process.env.NEXT_PUBLIC_STORAGE_SUPABASE_PUBLISHABLE_KEY || '',
     },
   },
   modules: ['@nuxtjs/tailwindcss', '@vercel/analytics'],
