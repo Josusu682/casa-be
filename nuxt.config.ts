@@ -4,6 +4,7 @@ export default defineNuxtConfig({
   srcDir: 'app/',
 
   nitro: {
+    preset: 'vercel',
     externals: {
       external: ['ioredis', '@supabase/supabase-js'],
     }
