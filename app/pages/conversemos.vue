@@ -38,7 +38,12 @@
               class="message"
               :class="`message--${msg.role}`"
             >
-              <span v-if="msg.role === 'assistant'" class="message__label">BE</span>
+              <div class="message__meta">
+                <span class="message__label">
+                  {{ msg.role === 'assistant' ? 'BE' : userInitial }}
+                </span>
+                <span class="message__time">{{ formatTime(msg.timestamp) }}</span>
+              </div>
               <div class="message__bubble">
                 <span class="message__text" v-html="formatText(msg.content)"></span>
               </div>
@@ -46,7 +51,9 @@
 
             <!-- Typing indicator -->
             <div v-if="streaming" class="message message--assistant">
-              <span class="message__label">BE</span>
+              <div class="message__meta">
+                <span class="message__label">BE</span>
+              </div>
               <div class="message__bubble">
                 <span v-if="streamingText" class="message__text" v-html="formatText(streamingText)"></span>
                 <span v-else class="message__dots">
@@ -87,17 +94,29 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({ middleware: 'auth' })
+
 interface Message {
-  role: 'user' | 'assistant'
-  content: string
+  role:      'user' | 'assistant'
+  content:   string
+  timestamp: Date
 }
 
-const messagesEl  = ref<HTMLElement | null>(null)
-const inputEl     = ref<HTMLTextAreaElement | null>(null)
-const messages    = ref<Message[]>([])
-const input       = ref('')
-const streaming   = ref(false)
+const { user, getToken } = useAuth()
+const router = useRouter()
+
+const messagesEl    = ref<HTMLElement | null>(null)
+const inputEl       = ref<HTMLTextAreaElement | null>(null)
+const messages      = ref<Message[]>([])
+const input         = ref('')
+const streaming     = ref(false)
 const streamingText = ref('')
+const conversationId = ref<number | null>(null)
+
+const userInitial = computed(() => {
+  const email = user.value?.email ?? ''
+  return email.charAt(0).toUpperCase()
+})
 
 const suggestions = [
   '¿Qué es el sistema nervioso autónomo?',
@@ -111,6 +130,10 @@ function formatText(text: string): string {
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/\n/g, '<br />')
+}
+
+function formatTime(date: Date): string {
+  return date.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
 }
 
 function autoResize() {
@@ -138,19 +161,28 @@ async function sendMessage() {
   const text = input.value.trim()
   if (!text || streaming.value) return
 
-  messages.value.push({ role: 'user', content: text })
+  messages.value.push({ role: 'user', content: text, timestamp: new Date() })
   input.value = ''
   if (inputEl.value) inputEl.value.style.height = 'auto'
   scrollToBottom(true)
 
-  streaming.value    = true
+  streaming.value     = true
   streamingText.value = ''
 
   try {
+    const token = await getToken()
+    if (!token) { router.push('/login'); return }
+
     const res = await fetch('/api/chat', {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ messages: messages.value }),
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        messages:       messages.value.map(m => ({ role: m.role, content: m.content })),
+        conversationId: conversationId.value,
+      }),
     })
 
     if (!res.ok) throw new Error('Error del servidor.')
@@ -172,18 +204,24 @@ async function sendMessage() {
         const data = line.slice(6).trim()
         if (data === '[DONE]') break
         try {
-          streamingText.value += JSON.parse(data)
-          scrollToBottom()
+          const parsed = JSON.parse(data)
+          if (parsed?.type === 'meta') {
+            conversationId.value = parsed.conversationId
+          } else {
+            streamingText.value += parsed
+            scrollToBottom()
+          }
         } catch { /* chunk parcial */ }
       }
     }
 
-    messages.value.push({ role: 'assistant', content: streamingText.value })
+    messages.value.push({ role: 'assistant', content: streamingText.value, timestamp: new Date() })
 
-  } catch (err) {
+  } catch {
     messages.value.push({
-      role: 'assistant',
-      content: 'Lo siento, ocurrió un error. Por favor intenta de nuevo.',
+      role:      'assistant',
+      content:   'Lo siento, ocurrió un error. Por favor intenta de nuevo.',
+      timestamp: new Date(),
     })
   } finally {
     streaming.value     = false
@@ -315,6 +353,11 @@ async function sendMessage() {
   align-items: flex-start;
 }
 
+.message__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 .message__label {
   font-family: 'Acumin Concept', sans-serif;
   font-size: 0.7rem;
@@ -322,6 +365,12 @@ async function sendMessage() {
   color: #394e3c;
   opacity: 0.45;
   text-transform: uppercase;
+}
+.message__time {
+  font-family: 'Acumin Concept', sans-serif;
+  font-size: 0.7rem;
+  color: #394e3c;
+  opacity: 0.3;
 }
 
 .message__bubble {
