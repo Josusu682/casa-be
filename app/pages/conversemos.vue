@@ -58,6 +58,7 @@
                 <span v-if="streamingText" class="message__text" v-html="formatText(streamingText)"></span>
                 <span v-else class="message__dots">
                   <span></span><span></span><span></span>
+                  <span v-if="elapsedSecs > 2" class="message__elapsed">{{ elapsedSecs }}s</span>
                 </span>
               </div>
             </div>
@@ -112,6 +113,16 @@ const input         = ref('')
 const streaming     = ref(false)
 const streamingText = ref('')
 const conversationId = ref<number | null>(null)
+const elapsedSecs   = ref(0)
+let   _timer: ReturnType<typeof setInterval> | null = null
+
+function startTimer() {
+  elapsedSecs.value = 0
+  _timer = setInterval(() => { elapsedSecs.value++ }, 1000)
+}
+function stopTimer() {
+  if (_timer) { clearInterval(_timer); _timer = null }
+}
 
 const userInitial = computed(() => {
   const email = user.value?.email ?? ''
@@ -168,19 +179,24 @@ async function sendMessage() {
 
   streaming.value     = true
   streamingText.value = ''
+  startTimer()
 
   try {
     const token = await getToken()
     if (!token) { router.push('/login'); return }
 
+    const controller = new AbortController()
+    const timeout     = setTimeout(() => controller.abort(), 25000)
+
     const res = await $fetch<{ reply: string; conversationId: number }>('/api/chat', {
       method:  'POST',
       headers: { Authorization: `Bearer ${token}` },
+      signal:  controller.signal,
       body: {
         messages:       messages.value.map(m => ({ role: m.role, content: m.content })),
         conversationId: conversationId.value,
       },
-    })
+    }).finally(() => clearTimeout(timeout))
 
     conversationId.value = res.conversationId
 
@@ -198,6 +214,7 @@ async function sendMessage() {
       timestamp: new Date(),
     })
   } finally {
+    stopTimer()
     streaming.value     = false
     streamingText.value = ''
     scrollToBottom(true)
@@ -391,6 +408,19 @@ async function typewrite(text: string) {
 }
 .message__dots span:nth-child(2) { animation-delay: 0.2s; }
 .message__dots span:nth-child(3) { animation-delay: 0.4s; }
+
+.message__elapsed {
+  width: auto !important;
+  height: auto !important;
+  background: none !important;
+  border-radius: 0 !important;
+  opacity: 0.45 !important;
+  animation: none !important;
+  font-family: 'Acumin Concept', sans-serif;
+  font-size: 0.7rem;
+  color: #394e3c;
+  margin-left: 4px;
+}
 
 @keyframes dot-bounce {
   0%, 80%, 100% { transform: translateY(0); }
