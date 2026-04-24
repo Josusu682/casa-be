@@ -191,9 +191,10 @@ async function sendMessage() {
   } catch (err: any) {
     const status  = err?.response?.status ?? err?.statusCode ?? '?'
     const message = err?.data?.statusMessage ?? err?.data?.message ?? err?.message ?? 'Error desconocido'
+    const detail  = err?.data?.data ? ` | ${JSON.stringify(err.data.data).slice(0, 300)}` : ''
     messages.value.push({
       role:      'assistant',
-      content:   `[Error ${status}] ${message}`,
+      content:   `[Error ${status}] ${message}${detail}`,
       timestamp: new Date(),
     })
   } finally {
