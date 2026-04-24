@@ -188,10 +188,12 @@ async function sendMessage() {
 
     messages.value.push({ role: 'assistant', content: res.reply, timestamp: new Date() })
 
-  } catch {
+  } catch (err: any) {
+    const status  = err?.response?.status ?? err?.statusCode ?? '?'
+    const message = err?.data?.statusMessage ?? err?.data?.message ?? err?.message ?? 'Error desconocido'
     messages.value.push({
       role:      'assistant',
-      content:   'Lo siento, ocurrió un error. Por favor intenta de nuevo.',
+      content:   `[Error ${status}] ${message}`,
       timestamp: new Date(),
     })
   } finally {
