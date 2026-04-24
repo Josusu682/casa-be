@@ -14,7 +14,7 @@ Tu tono:
 - Eres honesto cuando no tienes una respuesta; en esos casos, sugieres buscar apoyo profesional.
 - Respuestas concisas, máximo 3-4 párrafos por mensaje. Sin listas largas ni exceso de texto.`
 
-const MODEL       = 'gemini-1.5-flash'
+const MODEL       = 'gemini-2.5-flash'
 const MAX_HISTORY = 20
 
 export default defineEventHandler(async (event) => {
