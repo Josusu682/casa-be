@@ -42,18 +42,7 @@
         <button class="chat-topbar__menu" @click="sidebarOpen = true">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
-        <div class="model-selector">
-          <button
-            class="model-selector__btn"
-            :class="{ 'model-selector__btn--active': selectedModel === 'gemini' }"
-            @click="selectedModel = 'gemini'"
-          >Gemini</button>
-          <button
-            class="model-selector__btn"
-            :class="{ 'model-selector__btn--active': selectedModel === 'deepseek' }"
-            @click="selectedModel = 'deepseek'"
-          >DeepSeek</button>
-        </div>
+        <span class="chat-topbar__label">BE — Casa BE</span>
         <button class="chat-topbar__new" @click="newConversation" title="Nueva conversación">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
@@ -104,24 +93,38 @@
         </template>
       </div>
 
-      <!-- Input -->
-      <form class="chat-input" @submit.prevent="sendMessage">
-        <textarea
-          ref="inputEl"
-          v-model="input"
-          class="chat-input__field"
-          placeholder="Escribe tu pregunta..."
-          rows="1"
-          :disabled="streaming"
-          @keydown.enter.exact.prevent="sendMessage"
-          @input="autoResize"
-        ></textarea>
-        <button type="submit" class="chat-input__btn" :disabled="streaming || !input.trim()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-      </form>
+      <!-- Model selector + Input -->
+      <div class="chat-input-area">
+        <div class="model-selector">
+          <button
+            class="model-selector__btn"
+            :class="{ 'model-selector__btn--active': selectedModel === 'gemini' }"
+            @click="selectedModel = 'gemini'"
+          >Gemini</button>
+          <button
+            class="model-selector__btn"
+            :class="{ 'model-selector__btn--active': selectedModel === 'deepseek' }"
+            @click="selectedModel = 'deepseek'"
+          >DeepSeek</button>
+        </div>
+        <form class="chat-input" @submit.prevent="sendMessage">
+          <textarea
+            ref="inputEl"
+            v-model="input"
+            class="chat-input__field"
+            placeholder="Escribe tu pregunta..."
+            rows="1"
+            :disabled="streaming"
+            @keydown.enter.exact.prevent="sendMessage"
+            @input="autoResize"
+          ></textarea>
+          <button type="submit" class="chat-input__btn" :disabled="streaming || !input.trim()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </form>
+      </div>
 
       <p class="chat-disclaimer">BE es un asistente de IA. No reemplaza atención médica ni psicológica profesional.</p>
 
@@ -488,12 +491,17 @@ onMounted(fetchHistory)
   40%           { transform: translateY(-6px); opacity: 1; }
 }
 
-/* ── INPUT ── */
+/* ── INPUT AREA ── */
+.chat-input-area {
+  border-top: 1px solid rgba(57,78,60,0.15);
+  padding: 0.6rem 1.5rem 1.25rem;
+  background-color: #f2f1eb; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
 .chat-input {
   display: flex; align-items: flex-end; gap: 0.75rem;
-  border-top: 1px solid rgba(57,78,60,0.15);
-  padding: 1rem 1.5rem 1.25rem;
-  background-color: #f2f1eb; flex-shrink: 0;
+  padding: 0;
+  border: none;
 }
 .chat-input__field {
   flex: 1; resize: none; border: 1px solid rgba(57,78,60,0.2);
