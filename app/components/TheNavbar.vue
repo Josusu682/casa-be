@@ -129,7 +129,7 @@ const toggleMenu = () => {
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 50;
+  z-index: 200;
 }
 
 /* ── FULL NAV (top state) ── */

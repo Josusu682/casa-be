@@ -280,9 +280,9 @@ onMounted(fetchHistory)
 /* ── SIDEBAR OVERLAY (mobile) ── */
 .sidebar-overlay {
   position: fixed;
-  inset: 0;
+  top: 64px; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.35);
-  z-index: 40;
+  z-index: 140;
 }
 
 /* ── SIDEBAR ── */
@@ -299,8 +299,8 @@ onMounted(fetchHistory)
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
-    top: 0; left: 0; bottom: 0;
-    z-index: 50;
+    top: 64px; left: 0; bottom: 0;
+    z-index: 150;
     transform: translateX(-100%);
   }
   .sidebar--open { transform: translateX(0); }
