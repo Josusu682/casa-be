@@ -56,6 +56,12 @@ export default defineEventHandler(async (event) => {
         contents,
         systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
         generationConfig:  { maxOutputTokens: 800, temperature: 0.75 },
+        safetySettings: [
+          { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
+          { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
+          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+        ],
       }),
     }
   )
@@ -66,21 +72,24 @@ export default defineEventHandler(async (event) => {
   }
 
   const json  = await geminiRes.json()
-  const reply = json.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+  const blocked = !json.candidates?.length || json.candidates[0]?.finishReason === 'SAFETY'
+  const reply   = json.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
 
-  if (!reply) {
+  if (!reply && !blocked) {
     throw createError({ statusCode: 502, statusMessage: 'Respuesta vacía de la IA.' })
   }
+
+  const finalReply = reply || 'Lo que me contás excede lo que puedo acompañar desde acá. Lo más importante ahora es que busques apoyo de alguien especializado. No estás sola en esto, pero necesitás más que lo que yo puedo darte. Si estás en Chile y necesitás hablar con alguien ahora, podés llamar al Fono Salud Responde: 600 360 7777.'
 
   if (convId) {
     void (async () => {
       await getSupabase().from('messages').insert({
         conversation_id: convId,
         role:            'assistant',
-        content:         reply,
+        content:         finalReply,
       } as any)
     })()
   }
 
-  return { reply, conversationId: convId }
+  return { reply: finalReply, conversationId: convId }
 })
