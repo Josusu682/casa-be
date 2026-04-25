@@ -42,7 +42,18 @@
         <button class="chat-topbar__menu" @click="sidebarOpen = true">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
-        <span class="chat-topbar__label">BE — Casa BE</span>
+        <div class="model-selector">
+          <button
+            class="model-selector__btn"
+            :class="{ 'model-selector__btn--active': selectedModel === 'gemini' }"
+            @click="selectedModel = 'gemini'"
+          >Gemini</button>
+          <button
+            class="model-selector__btn"
+            :class="{ 'model-selector__btn--active': selectedModel === 'deepseek' }"
+            @click="selectedModel = 'deepseek'"
+          >DeepSeek</button>
+        </div>
         <button class="chat-topbar__new" @click="newConversation" title="Nueva conversación">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
@@ -136,6 +147,7 @@ const streamingText   = ref('')
 const conversationId  = ref<number | null>(null)
 const elapsedSecs     = ref(0)
 const sidebarOpen     = ref(false)
+const selectedModel   = ref<'gemini' | 'deepseek'>('gemini')
 const history         = ref<ConvItem[]>([])
 const loadingHistory  = ref(false)
 const loadingMessages = ref(false)
@@ -237,7 +249,7 @@ async function sendMessage() {
       method:  'POST',
       headers: { Authorization: `Bearer ${token}` },
       signal:  controller.signal,
-      body:    { messages: messages.value.map(m => ({ role: m.role, content: m.content })), conversationId: conversationId.value },
+      body:    { messages: messages.value.map(m => ({ role: m.role, content: m.content })), conversationId: conversationId.value, model: selectedModel.value },
     }).finally(() => clearTimeout(timeout))
 
     conversationId.value = res.conversationId
@@ -388,6 +400,24 @@ onMounted(fetchHistory)
 .chat-topbar__label {
   font-family: 'Acumin Concept', sans-serif; font-size: 0.8rem;
   letter-spacing: 0.08em; color: #394e3c; opacity: 0.5; text-transform: uppercase;
+}
+
+/* ── MODEL SELECTOR ── */
+.model-selector {
+  display: flex;
+  border: 1px solid rgba(57,78,60,0.18);
+  overflow: hidden;
+}
+.model-selector__btn {
+  background: none; border: none; padding: 0.3rem 0.85rem;
+  font-family: 'Acumin Concept', sans-serif; font-size: 0.72rem;
+  letter-spacing: 0.06em; color: #394e3c; opacity: 0.45;
+  cursor: pointer; transition: background 0.15s, opacity 0.15s;
+}
+.model-selector__btn:first-child { border-right: 1px solid rgba(57,78,60,0.18); }
+.model-selector__btn:hover { opacity: 0.8; }
+.model-selector__btn--active {
+  background: #394e3c; color: #fff; opacity: 1;
 }
 
 /* ── MESSAGES ── */

@@ -21,6 +21,7 @@ export default defineNuxtConfig({
     supabaseUrl:         '',
     supabaseServiceKey:  '',
     geminiApiKey:        '',
+    deepseekApiKey:      '',
     public: {
       supabaseUrl:      process.env.NEXT_PUBLIC_STORAGE_SUPABASE_URL               || '',
       supabaseAnonKey:  process.env.NEXT_PUBLIC_STORAGE_SUPABASE_ANON_KEY          || '',
