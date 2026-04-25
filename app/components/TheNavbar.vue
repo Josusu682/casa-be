@@ -82,9 +82,13 @@
 const { user, logout } = useAuth()
 const router = useRouter()
 
-const isMenuOpen  = ref(false)
-const isScrolled  = ref(false)
+const route        = useRoute()
+const isMenuOpen   = ref(false)
 const dropdownOpen = ref(false)
+const isScrolled   = computed(() =>
+  route.path === '/conversemos' || _scrolled.value
+)
+const _scrolled = ref(false)
 
 async function handleLogout() {
   await logout()
@@ -97,7 +101,7 @@ async function handleLogout() {
 let threshold = 0
 
 function onScroll() {
-  isScrolled.value = window.scrollY > threshold
+  _scrolled.value = window.scrollY > threshold
 }
 
 function setThreshold() {
