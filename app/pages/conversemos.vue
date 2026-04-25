@@ -231,7 +231,7 @@ async function sendMessage() {
     if (!token) { router.push('/login'); return }
 
     const controller = new AbortController()
-    const timeout    = setTimeout(() => controller.abort(), 25000)
+    const timeout    = setTimeout(() => controller.abort(), 45000)
 
     const res = await $fetch<{ reply: string; conversationId: number }>('/api/chat', {
       method:  'POST',
@@ -246,10 +246,13 @@ async function sendMessage() {
     await fetchHistory()
 
   } catch (err: any) {
+    const isAbort = err?.message?.includes('abort') || err?.name === 'AbortError'
     const status  = err?.response?.status ?? err?.statusCode ?? '?'
-    const message = err?.data?.statusMessage ?? err?.data?.message ?? err?.message ?? 'Error desconocido'
-    const detail  = err?.data?.data ? ` | ${JSON.stringify(err.data.data).slice(0, 300)}` : ''
-    messages.value.push({ role: 'assistant', content: `[Error ${status}] ${message}${detail}`, timestamp: new Date() })
+    const message = isAbort
+      ? 'La respuesta tardó demasiado. Intenta de nuevo.'
+      : (err?.data?.statusMessage ?? err?.data?.message ?? err?.message ?? 'Error desconocido')
+    const detail  = (!isAbort && err?.data?.data) ? ` | ${JSON.stringify(err.data.data).slice(0, 300)}` : ''
+    messages.value.push({ role: 'assistant', content: isAbort ? message : `[Error ${status}] ${message}${detail}`, timestamp: new Date() })
   } finally {
     stopTimer(); streaming.value = false; streamingText.value = ''
     scrollToBottom(true); nextTick(() => inputEl.value?.focus())
