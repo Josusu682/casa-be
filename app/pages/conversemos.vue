@@ -241,45 +241,73 @@ async function sendMessage() {
 
   streaming.value = true; streamingText.value = ''; startTimer()
 
+  const controller = new AbortController()
+  const timeout    = setTimeout(() => controller.abort(), 60000)
+
   try {
     const token = await getToken()
     if (!token) { router.push('/login'); return }
 
-    const controller = new AbortController()
-    const timeout    = setTimeout(() => controller.abort(), 45000)
-
-    const res = await $fetch<{ reply: string; conversationId: number }>('/api/chat', {
+    const res = await fetch('/api/chat', {
       method:  'POST',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       signal:  controller.signal,
-      body:    { messages: messages.value.map(m => ({ role: m.role, content: m.content })), conversationId: conversationId.value, model: selectedModel.value },
-    }).finally(() => clearTimeout(timeout))
+      body:    JSON.stringify({
+        messages:       messages.value.map(m => ({ role: m.role, content: m.content })),
+        conversationId: conversationId.value,
+        model:          selectedModel.value,
+      }),
+    })
 
-    conversationId.value = res.conversationId
-    await typewrite(res.reply)
-    messages.value.push({ role: 'assistant', content: res.reply, timestamp: new Date() })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err?.statusMessage ?? `Error ${res.status}`)
+    }
+
+    const reader  = res.body!.getReader()
+    const decoder = new TextDecoder()
+    let buf      = ''
+    let fullText = ''
+
+    outer: while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buf += decoder.decode(value, { stream: true })
+      const lines = buf.split('\n')
+      buf = lines.pop() ?? ''
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue
+        try {
+          const ev = JSON.parse(line.slice(6))
+          if (ev.t) {
+            streamingText.value += ev.t
+            fullText += ev.t
+            scrollToBottom()
+          } else if (ev.replace) {
+            streamingText.value = ev.replace
+            fullText = ev.replace
+          } else if (ev.error) {
+            throw new Error(ev.error)
+          } else if (ev.done) {
+            if (ev.convId) conversationId.value = ev.convId
+            break outer
+          }
+        } catch (e) { if (e instanceof SyntaxError) continue; throw e }
+      }
+    }
+
+    messages.value.push({ role: 'assistant', content: fullText, timestamp: new Date() })
     await fetchHistory()
 
   } catch (err: any) {
-    const isAbort = err?.message?.includes('abort') || err?.name === 'AbortError'
-    const status  = err?.response?.status ?? err?.statusCode ?? '?'
-    const message = isAbort
-      ? 'La respuesta tardó demasiado. Intenta de nuevo.'
-      : (err?.data?.statusMessage ?? err?.data?.message ?? err?.message ?? 'Error desconocido')
-    const detail  = (!isAbort && err?.data?.data) ? ` | ${JSON.stringify(err.data.data).slice(0, 300)}` : ''
-    messages.value.push({ role: 'assistant', content: isAbort ? message : `[Error ${status}] ${message}${detail}`, timestamp: new Date() })
+    const isAbort = err?.name === 'AbortError' || String(err?.message).includes('abort')
+    const msg = isAbort ? 'La respuesta tardó demasiado. Intenta de nuevo.' : (err?.message ?? 'Error desconocido')
+    messages.value.push({ role: 'assistant', content: msg, timestamp: new Date() })
   } finally {
+    clearTimeout(timeout)
     stopTimer(); streaming.value = false; streamingText.value = ''
     scrollToBottom(true); nextTick(() => inputEl.value?.focus())
   }
-}
-
-async function typewrite(text: string) {
-  for (let i = 0; i < text.length; i++) {
-    streamingText.value += text[i]
-    if (i % 4 === 0) { scrollToBottom(); await new Promise(r => setTimeout(r, 12)) }
-  }
-  scrollToBottom()
 }
 
 onMounted(fetchHistory)
