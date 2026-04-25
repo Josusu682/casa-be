@@ -2,7 +2,7 @@ import { getSupabase } from '../utils/supabase'
 import { SYSTEM_PROMPT } from '../../AI-Context/system-prompt'
 
 const GEMINI_MODEL   = 'gemini-3.1-flash-lite-preview'
-const DEEPSEEK_MODEL = 'deepseek-chat'
+const DEEPSEEK_MODEL = 'deepseek-v4-flash'
 const MAX_HISTORY    = 20
 const SAFETY_MSG     = 'Lo que me contás excede lo que puedo acompañar desde acá. Lo más importante ahora es que busques apoyo de alguien especializado. No estás sola en esto, pero necesitás más que lo que yo puedo darte. Si estás en Chile y necesitás hablar con alguien ahora, podés llamar al Fono Salud Responde: 600 360 7777.'
 const SAFETY_SETTINGS = [
