@@ -1,33 +1,8 @@
 import { getSupabase } from '../utils/supabase'
 import { SYSTEM_PROMPT } from '../../AI-Context/system-prompt'
 
-const MODEL_PRIMARY  = 'gemini-3.1-flash-lite-preview'
-const MODEL_FALLBACK = 'gemini-2.0-flash-lite'
-const MAX_HISTORY    = 20
-
-const GEMINI_BODY = (contents: unknown[]) => ({
-  contents,
-  systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-  generationConfig:  { maxOutputTokens: 800, temperature: 0.75 },
-  safetySettings: [
-    { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
-    { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
-    { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-    { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-  ],
-})
-
-async function callGemini(model: string, contents: unknown[], apiKey: string) {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(GEMINI_BODY(contents)) }
-  )
-  if (!res.ok) return null
-  const json    = await res.json()
-  const blocked = !json.candidates?.length || json.candidates[0]?.finishReason === 'SAFETY'
-  const text    = json.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
-  return { text, blocked }
-}
+const MODEL       = 'gemini-3.1-flash-lite-preview'
+const MAX_HISTORY = 20
 
 export default defineEventHandler(async (event) => {
   const authHeader = getHeader(event, 'authorization')
@@ -72,16 +47,39 @@ export default defineEventHandler(async (event) => {
     parts: [{ text: m.content }],
   }))
 
-  let result = await callGemini(MODEL_PRIMARY, contents, apiKey).catch(() => null)
-  if (!result?.text && !result?.blocked) {
-    result = await callGemini(MODEL_FALLBACK, contents, apiKey).catch(() => null)
+  const geminiRes = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
+    {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents,
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        generationConfig:  { maxOutputTokens: 800, temperature: 0.75 },
+        safetySettings: [
+          { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
+          { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
+          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+        ],
+      }),
+    }
+  )
+
+  if (!geminiRes.ok) {
+    const err = await geminiRes.text().catch(() => 'unknown')
+    throw createError({ statusCode: 502, statusMessage: 'Error al conectar con la IA.', data: err })
   }
 
-  if (!result) {
-    throw createError({ statusCode: 502, statusMessage: 'Error al conectar con la IA.' })
+  const json    = await geminiRes.json()
+  const blocked = !json.candidates?.length || json.candidates[0]?.finishReason === 'SAFETY'
+  const reply   = json.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+
+  if (!reply && !blocked) {
+    throw createError({ statusCode: 502, statusMessage: 'Respuesta vacía de la IA.' })
   }
 
-  const finalReply = result.text || 'Lo que me contás excede lo que puedo acompañar desde acá. Lo más importante ahora es que busques apoyo de alguien especializado. No estás sola en esto, pero necesitás más que lo que yo puedo darte. Si estás en Chile y necesitás hablar con alguien ahora, podés llamar al Fono Salud Responde: 600 360 7777.'
+  const finalReply = reply || 'Lo que me contás excede lo que puedo acompañar desde acá. Lo más importante ahora es que busques apoyo de alguien especializado. No estás sola en esto, pero necesitás más que lo que yo puedo darte. Si estás en Chile y necesitás hablar con alguien ahora, podés llamar al Fono Salud Responde: 600 360 7777.'
 
   if (convId) {
     void (async () => {
