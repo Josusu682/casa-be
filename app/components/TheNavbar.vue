@@ -1,7 +1,7 @@
 <template>
   <nav
     class="navbar"
-    :class="{ 'navbar--solid': isScrolled, 'navbar--menu-open': isMenuOpen }"
+    :class="{ 'navbar--solid': isScrolled, 'navbar--menu-open': isMenuOpen, 'navbar--chat': isChat }"
   >
 
     <!-- Estado TOP: barra completa con links -->
@@ -84,11 +84,9 @@ const router = useRouter()
 
 const route        = useRoute()
 const isMenuOpen   = ref(false)
+const isScrolled   = ref(false)
 const dropdownOpen = ref(false)
-const isScrolled   = computed(() =>
-  route.path === '/conversemos' || _scrolled.value
-)
-const _scrolled = ref(false)
+const isChat       = computed(() => route.path === '/conversemos')
 
 async function handleLogout() {
   await logout()
@@ -101,7 +99,7 @@ async function handleLogout() {
 let threshold = 0
 
 function onScroll() {
-  _scrolled.value = window.scrollY > threshold
+  isScrolled.value = window.scrollY > threshold
 }
 
 function setThreshold() {
@@ -134,6 +132,17 @@ const toggleMenu = () => {
   left: 0;
   width: 100%;
   z-index: 200;
+}
+.navbar--chat {
+  background-color: #2a3d2c;
+}
+.navbar--chat .navbar__nav-link,
+.navbar--chat .navbar__account-btn {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+.navbar--chat .navbar__nav-link:hover,
+.navbar--chat .navbar__account-btn:hover {
+  color: #ffffff !important;
 }
 
 /* ── FULL NAV (top state) ── */
