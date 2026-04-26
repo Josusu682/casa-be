@@ -136,6 +136,7 @@ export default defineEventHandler(async (event) => {
 
   setResponseHeader(event, 'Content-Type', 'text/event-stream')
   setResponseHeader(event, 'Cache-Control', 'no-cache')
+  setResponseHeader(event, 'X-Accel-Buffering', 'no')
 
   const encoder = new TextEncoder()
   const send    = (data: object) => encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
