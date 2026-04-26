@@ -144,6 +144,10 @@ export default defineEventHandler(async (event) => {
     nodeRes.write(`data: ${JSON.stringify(data)}\n\n`)
   }
 
+  const keepalive = setInterval(() => {
+    try { nodeRes.write(': keepalive\n\n') } catch {}
+  }, 5000)
+
   let fullText = ''
   try {
     const source = model === 'deepseek'
@@ -170,6 +174,7 @@ export default defineEventHandler(async (event) => {
     send({ error: `Error al conectar con la IA: ${msg}` })
   }
 
+  clearInterval(keepalive)
   send({ done: true, convId })
   nodeRes.end()
 
