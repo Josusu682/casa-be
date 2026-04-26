@@ -80,14 +80,14 @@
             </div>
             <div v-if="msg.role === 'assistant'" class="message__actions">
               <button class="msg-action" :class="{ 'msg-action--active': ratings[i] === 'up' }" @click="rateMessage(i, 'up')" title="Me gustó">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M7 22V11M2 13v7a2 2 0 002 2h11.172a2 2 0 001.97-1.671l1.314-8A2 2 0 0016.486 9H13V5a3 3 0 00-3-3H9l-2 6v14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <HandThumbUpIcon style="width:17px;height:17px;"/>
               </button>
               <button class="msg-action" :class="{ 'msg-action--active': ratings[i] === 'down' }" @click="rateMessage(i, 'down')" title="No me gustó">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M17 2v11m5-9v7a2 2 0 01-2 2H8.828a2 2 0 01-1.97 1.671l-1.314 8A2 2 0 007.514 15H11v4a3 3 0 003 3h1l2-6V2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <HandThumbDownIcon style="width:17px;height:17px;"/>
               </button>
               <button class="msg-action" :class="{ 'msg-action--active': speakingIdx === i }" @click="toggleSpeak(i, msg.content)" :title="speakingIdx === i ? 'Detener' : 'Escuchar'">
-                <svg v-if="speakingIdx !== i" width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+                <StopIcon v-if="speakingIdx === i" style="width:17px;height:17px;"/>
+                <SpeakerWaveIcon v-else style="width:17px;height:17px;"/>
               </button>
             </div>
           </article>
@@ -145,6 +145,7 @@
 </template>
 
 <script setup lang="ts">
+import { HandThumbUpIcon, HandThumbDownIcon, SpeakerWaveIcon, StopIcon } from '@heroicons/vue/24/outline'
 definePageMeta({ middleware: 'auth' })
 
 interface Message    { role: 'user' | 'assistant'; content: string; timestamp: Date }
@@ -359,6 +360,8 @@ async function sendMessage() {
       if (!gotDone && fullText === '') throw new Error('Conexión interrumpida por el servidor')
 
       messages.value.push({ role: 'assistant', content: fullText, timestamp: new Date() })
+      stopTimer(); streaming.value = false; streamingText.value = ''
+      scrollToBottom(true)
       await fetchHistory()
       lastError = null
       break
