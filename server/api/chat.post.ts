@@ -13,10 +13,13 @@ const SAFETY_SETTINGS = [
 ]
 
 async function* streamGemini(contents: unknown[], apiKey: string) {
+  const ac = new AbortController()
+  const t  = setTimeout(() => ac.abort(), 25000)
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${apiKey}`,
     {
       method: 'POST',
+      signal: ac.signal,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents,
@@ -26,6 +29,7 @@ async function* streamGemini(contents: unknown[], apiKey: string) {
       }),
     }
   )
+  clearTimeout(t)
   if (!res.ok) throw new Error(`Gemini ${res.status}`)
 
   const reader  = res.body!.getReader()
@@ -53,8 +57,11 @@ async function* streamGemini(contents: unknown[], apiKey: string) {
 
 async function* streamDeepSeek(messages: { role: string; content: string }[], apiKey: string) {
   if (!apiKey) throw new Error('DeepSeek API key no configurada.')
+  const ac = new AbortController()
+  const t  = setTimeout(() => ac.abort(), 25000)
   const res = await fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
+    signal: ac.signal,
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
       model:       DEEPSEEK_MODEL,
@@ -64,6 +71,7 @@ async function* streamDeepSeek(messages: { role: string; content: string }[], ap
       stream:      true,
     }),
   })
+  clearTimeout(t)
   if (!res.ok) throw new Error(`DeepSeek ${res.status}`)
 
   const reader  = res.body!.getReader()
