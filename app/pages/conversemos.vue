@@ -249,7 +249,7 @@ async function sendMessage() {
     if (attempt > 0) {
       console.log(`[retry] intento ${attempt}/${MAX_RETRIES}`)
       streamingText.value = `Reintentando (${attempt}/${MAX_RETRIES})...`
-      await new Promise(r => setTimeout(r, 1200 * attempt))
+      await new Promise(r => setTimeout(r, 10000))
       streamingText.value = ''
     }
 
@@ -282,8 +282,15 @@ async function sendMessage() {
       const decoder = new TextDecoder()
       let buf = ''
 
+      const readChunk = () => Promise.race([
+        reader.read(),
+        new Promise<never>((_, rej) =>
+          setTimeout(() => { controller.abort(); rej(new Error('Sin respuesta del servidor (timeout read)')) }, 30000)
+        ),
+      ])
+
       outer: while (true) {
-        const { done, value } = await reader.read()
+        const { done, value } = await readChunk()
         console.log('[stream] read done:', done, 'bytes:', value?.length)
         if (done) break
         buf += decoder.decode(value, { stream: true })
