@@ -78,6 +78,18 @@
             <div class="message__bubble">
               <span class="message__text" v-html="formatText(msg.content)"></span>
             </div>
+            <div v-if="msg.role === 'assistant'" class="message__actions">
+              <button class="msg-action" :class="{ 'msg-action--active': ratings[i] === 'up' }" @click="rateMessage(i, 'up')" title="Me gustó">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M7 22V11M2 13v7a2 2 0 002 2h11.172a2 2 0 001.97-1.671l1.314-8A2 2 0 0016.486 9H13V5a3 3 0 00-3-3H9l-2 6v14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="msg-action" :class="{ 'msg-action--active': ratings[i] === 'down' }" @click="rateMessage(i, 'down')" title="No me gustó">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M17 2v11m5-9v7a2 2 0 01-2 2H8.828a2 2 0 01-1.97 1.671l-1.314 8A2 2 0 007.514 15H11v4a3 3 0 003 3h1l2-6V2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="msg-action" :class="{ 'msg-action--active': speakingIdx === i }" @click="toggleSpeak(i, msg.content)" :title="speakingIdx === i ? 'Detener' : 'Escuchar'">
+                <svg v-if="speakingIdx !== i" width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+              </button>
+            </div>
           </article>
 
           <div v-if="streaming" class="message message--assistant">
@@ -155,6 +167,27 @@ const history         = ref<ConvItem[]>([])
 const loadingHistory  = ref(false)
 const loadingMessages = ref(false)
 let   _timer: ReturnType<typeof setInterval> | null = null
+
+const ratings    = ref<Record<number, 'up' | 'down'>>({})
+const speakingIdx = ref<number | null>(null)
+
+function rateMessage(i: number, rating: 'up' | 'down') {
+  if (ratings.value[i] === rating) { const r = { ...ratings.value }; delete r[i]; ratings.value = r }
+  else ratings.value = { ...ratings.value, [i]: rating }
+}
+function stripHtml(html: string) {
+  return html.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ')
+}
+function toggleSpeak(i: number, content: string) {
+  if (speakingIdx.value === i) { window.speechSynthesis.cancel(); speakingIdx.value = null; return }
+  window.speechSynthesis.cancel()
+  const utter = new SpeechSynthesisUtterance(stripHtml(content))
+  utter.lang = 'es-CL'; utter.rate = 0.95
+  utter.onend = () => { speakingIdx.value = null }
+  utter.onerror = () => { speakingIdx.value = null }
+  speakingIdx.value = i
+  window.speechSynthesis.speak(utter)
+}
 
 function startTimer() { elapsedSecs.value = 0; _timer = setInterval(() => { elapsedSecs.value++ }, 1000) }
 function stopTimer()  { if (_timer) { clearInterval(_timer); _timer = null } }
@@ -591,6 +624,19 @@ onMounted(fetchHistory)
 }
 .chat-input__btn:hover:not(:disabled) { background-color: #2d3f30; }
 .chat-input__btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── MESSAGE ACTIONS ── */
+.message__actions {
+  display: flex; gap: 2px; margin-top: 4px; padding-left: 2px;
+}
+.msg-action {
+  background: none; border: none; padding: 5px;
+  cursor: pointer; color: #394e3c; opacity: 0.3;
+  display: flex; align-items: center;
+  transition: opacity 0.15s, color 0.15s;
+}
+.msg-action:hover { opacity: 0.65; }
+.msg-action--active { opacity: 1; }
 
 .chat-disclaimer {
   font-family: 'Acumin Concept', sans-serif; font-size: 0.75rem;
