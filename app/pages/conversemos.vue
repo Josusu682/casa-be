@@ -398,7 +398,7 @@ onMounted(fetchHistory)
   display: flex;
   height: 100vh;
   overflow: hidden;
-  background-color: #f2f1eb;
+  background-color: #1c2b1e;
   padding-top: 64px;
 }
 
@@ -496,38 +496,38 @@ onMounted(fetchHistory)
 .chat-topbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0.75rem 1.25rem;
-  border-bottom: 1px solid rgba(57,78,60,0.12);
-  background: #f2f1eb;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  background: #243328;
   flex-shrink: 0;
 }
 .chat-topbar__menu, .chat-topbar__new {
-  background: none; border: none; color: #394e3c;
-  cursor: pointer; display: flex; padding: 6px; opacity: 0.55;
-  transition: opacity 0.2s;
+  background: none; border: none; color: rgba(255,255,255,0.6);
+  cursor: pointer; display: flex; padding: 6px;
+  transition: color 0.2s;
 }
-.chat-topbar__menu:hover, .chat-topbar__new:hover { opacity: 1; }
+.chat-topbar__menu:hover, .chat-topbar__new:hover { color: rgba(255,255,255,0.95); }
 @media (min-width: 769px) { .chat-topbar__menu { display: none; } }
 .chat-topbar__label {
   font-family: 'Acumin Concept', sans-serif; font-size: 0.8rem;
-  letter-spacing: 0.08em; color: #394e3c; opacity: 0.5; text-transform: uppercase;
+  letter-spacing: 0.08em; color: rgba(255,255,255,0.4); text-transform: uppercase;
 }
 
 /* ── MODEL SELECTOR ── */
 .model-selector {
   display: flex;
-  border: 1px solid rgba(57,78,60,0.18);
+  border: 1px solid rgba(255,255,255,0.12);
   overflow: hidden;
 }
 .model-selector__btn {
   background: none; border: none; padding: 0.3rem 0.85rem;
   font-family: 'Acumin Concept', sans-serif; font-size: 0.72rem;
-  letter-spacing: 0.06em; color: #394e3c; opacity: 0.45;
-  cursor: pointer; transition: background 0.15s, opacity 0.15s;
+  letter-spacing: 0.06em; color: rgba(255,255,255,0.45);
+  cursor: pointer; transition: background 0.15s, color 0.15s;
 }
-.model-selector__btn:first-child { border-right: 1px solid rgba(57,78,60,0.18); }
-.model-selector__btn:hover { opacity: 0.8; }
+.model-selector__btn:first-child { border-right: 1px solid rgba(255,255,255,0.12); }
+.model-selector__btn:hover { color: rgba(255,255,255,0.85); }
 .model-selector__btn--active {
-  background: #394e3c; color: #fff; opacity: 1;
+  background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.95);
 }
 
 /* ── MESSAGES ── */
@@ -542,19 +542,19 @@ onMounted(fetchHistory)
 }
 .messages__empty-text {
   font-family: 'Acumin Concept', sans-serif; font-size: 1.25rem;
-  font-weight: 300; color: #394e3c; opacity: 0.6;
+  font-weight: 300; color: rgba(255,255,255,0.55);
 }
 .messages__suggestions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
 .messages__suggestion {
-  background: none; border: 1px solid rgba(57,78,60,0.25);
+  background: none; border: 1px solid rgba(255,255,255,0.15);
   padding: 0.5rem 1rem; font-family: 'Acumin Concept', sans-serif;
-  font-size: 0.9rem; color: #394e3c; cursor: pointer; text-align: left;
+  font-size: 0.9rem; color: rgba(255,255,255,0.65); cursor: pointer; text-align: left;
   transition: background 0.2s, border-color 0.2s;
 }
-.messages__suggestion:hover { background: rgba(57,78,60,0.06); border-color: rgba(57,78,60,0.5); }
+.messages__suggestion:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.35); }
 .messages__loading {
   font-family: 'Acumin Concept', sans-serif; font-size: 0.9rem;
-  color: #394e3c; opacity: 0.4; padding: 2rem; text-align: center;
+  color: rgba(255,255,255,0.35); padding: 2rem; text-align: center;
 }
 
 /* ── MESSAGE ── */
@@ -567,31 +567,31 @@ onMounted(fetchHistory)
 .message__meta  { display: flex; align-items: center; gap: 0.5rem; }
 .message__label {
   font-family: 'Acumin Concept', sans-serif; font-size: 0.7rem;
-  letter-spacing: 0.1em; color: #394e3c; opacity: 0.45; text-transform: uppercase;
+  letter-spacing: 0.1em; color: rgba(255,255,255,0.35); text-transform: uppercase;
 }
 .message__time {
   font-family: 'Acumin Concept', sans-serif; font-size: 0.7rem;
-  color: #394e3c; opacity: 0.3;
+  color: rgba(255,255,255,0.22);
 }
 .message__bubble {
   padding: 0.85rem 1.15rem; font-family: 'Acumin Concept', sans-serif;
-  font-size: 1rem; line-height: 1.6; color: #394e3c;
+  font-size: 1rem; line-height: 1.6;
 }
-.message--user .message__bubble      { background-color: #394e3c; color: #fff; }
-.message--assistant .message__bubble { background-color: #fff; border: 1px solid rgba(57,78,60,0.1); }
+.message--user .message__bubble      { background-color: #3d5940; color: rgba(255,255,255,0.92); }
+.message--assistant .message__bubble { background-color: #2a3d2c; color: rgba(255,255,255,0.88); border: 1px solid rgba(255,255,255,0.06); }
 
 /* ── DOTS ── */
 .message__dots { display: flex; gap: 5px; align-items: center; height: 20px; }
 .message__dots span {
-  width: 6px; height: 6px; background: #394e3c; border-radius: 50%;
-  opacity: 0.4; animation: dot-bounce 1.2s infinite ease-in-out;
+  width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%;
+  opacity: 0.5; animation: dot-bounce 1.2s infinite ease-in-out;
 }
 .message__dots span:nth-child(2) { animation-delay: 0.2s; }
 .message__dots span:nth-child(3) { animation-delay: 0.4s; }
 .message__elapsed {
   width: auto !important; height: auto !important; background: none !important;
-  border-radius: 0 !important; opacity: 0.45 !important; animation: none !important;
-  font-family: 'Acumin Concept', sans-serif; font-size: 0.7rem; color: #394e3c; margin-left: 4px;
+  border-radius: 0 !important; opacity: 0.5 !important; animation: none !important;
+  font-family: 'Acumin Concept', sans-serif; font-size: 0.7rem; color: rgba(255,255,255,0.6); margin-left: 4px;
 }
 @keyframes dot-bounce {
   0%, 80%, 100% { transform: translateY(0); }
@@ -600,9 +600,9 @@ onMounted(fetchHistory)
 
 /* ── INPUT AREA ── */
 .chat-input-area {
-  border-top: 1px solid rgba(57,78,60,0.15);
+  border-top: 1px solid rgba(255,255,255,0.07);
   padding: 0.6rem 1.5rem 1.25rem;
-  background-color: #f2f1eb; flex-shrink: 0;
+  background-color: #243328; flex-shrink: 0;
   display: flex; flex-direction: column; gap: 0.5rem;
 }
 .chat-input {
@@ -611,22 +611,22 @@ onMounted(fetchHistory)
   border: none;
 }
 .chat-input__field {
-  flex: 1; resize: none; border: 1px solid rgba(57,78,60,0.2);
-  background: #fff; padding: 0.75rem 1rem;
+  flex: 1; resize: none; border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06); padding: 0.75rem 1rem;
   font-family: 'Acumin Concept', sans-serif; font-size: 1rem;
-  color: #394e3c; outline: none; line-height: 1.5;
+  color: rgba(255,255,255,0.9); outline: none; line-height: 1.5;
   transition: border-color 0.2s; overflow-y: hidden;
 }
-.chat-input__field:focus     { border-color: #394e3c; }
-.chat-input__field::placeholder { color: rgba(57,78,60,0.4); }
-.chat-input__field:disabled  { opacity: 0.5; cursor: not-allowed; }
+.chat-input__field:focus     { border-color: rgba(255,255,255,0.3); }
+.chat-input__field::placeholder { color: rgba(255,255,255,0.28); }
+.chat-input__field:disabled  { opacity: 0.4; cursor: not-allowed; }
 .chat-input__btn {
-  width: 44px; height: 44px; background-color: #394e3c; border: none;
-  color: #fff; cursor: pointer; display: flex; align-items: center;
+  width: 44px; height: 44px; background-color: rgba(255,255,255,0.12); border: none;
+  color: rgba(255,255,255,0.85); cursor: pointer; display: flex; align-items: center;
   justify-content: center; flex-shrink: 0; transition: background-color 0.2s;
 }
-.chat-input__btn:hover:not(:disabled) { background-color: #2d3f30; }
-.chat-input__btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.chat-input__btn:hover:not(:disabled) { background-color: rgba(255,255,255,0.2); }
+.chat-input__btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
 /* ── MESSAGE ACTIONS ── */
 .message__actions {
@@ -634,16 +634,16 @@ onMounted(fetchHistory)
 }
 .msg-action {
   background: none; border: none; padding: 5px;
-  cursor: pointer; color: #394e3c; opacity: 0.3;
+  cursor: pointer; color: rgba(255,255,255,0.35);
   display: flex; align-items: center;
-  transition: opacity 0.15s, color 0.15s;
+  transition: color 0.15s;
 }
-.msg-action:hover { opacity: 0.65; }
-.msg-action--active { opacity: 1; }
+.msg-action:hover { color: rgba(255,255,255,0.7); }
+.msg-action--active { color: rgba(255,255,255,0.95); }
 
 .chat-disclaimer {
   font-family: 'Acumin Concept', sans-serif; font-size: 0.75rem;
-  color: #394e3c; opacity: 0.4; text-align: center;
+  color: rgba(255,255,255,0.22); text-align: center;
   padding: 0 1.5rem 1.25rem;
 }
 </style>
