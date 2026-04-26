@@ -134,47 +134,46 @@ export default defineEventHandler(async (event) => {
 
   const trimmed = (messages as { role: string; content: string }[]).slice(-MAX_HISTORY)
 
-  setResponseHeader(event, 'Content-Type', 'text/event-stream')
-  setResponseHeader(event, 'Cache-Control', 'no-cache')
-  setResponseHeader(event, 'X-Accel-Buffering', 'no')
+  const nodeRes = event.node.res
+  nodeRes.setHeader('Content-Type', 'text/event-stream')
+  nodeRes.setHeader('Cache-Control', 'no-cache')
+  nodeRes.setHeader('X-Accel-Buffering', 'no')
+  nodeRes.flushHeaders()
 
-  const encoder = new TextEncoder()
-  const send    = (data: object) => encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
+  const send = (data: object) => {
+    nodeRes.write(`data: ${JSON.stringify(data)}\n\n`)
+  }
 
-  return new ReadableStream({
-    async start(controller) {
-      let fullText = ''
-      try {
-        const source = model === 'deepseek'
-          ? streamDeepSeek(trimmed, deepseekKey)
-          : streamGemini(
-              trimmed.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
-              geminiKey
-            )
+  let fullText = ''
+  try {
+    const source = model === 'deepseek'
+      ? streamDeepSeek(trimmed, deepseekKey)
+      : streamGemini(
+          trimmed.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
+          geminiKey
+        )
 
-        for await (const chunk of source) {
-          if ('blocked' in chunk && chunk.blocked) {
-            controller.enqueue(send({ replace: SAFETY_MSG }))
-            fullText = SAFETY_MSG
-            break
-          }
-          if (chunk.text) {
-            fullText += chunk.text
-            controller.enqueue(send({ t: chunk.text }))
-          }
-        }
-      } catch {
-        controller.enqueue(send({ error: 'Error al conectar con la IA. Intenta de nuevo.' }))
+    for await (const chunk of source) {
+      if ('blocked' in chunk && chunk.blocked) {
+        send({ replace: SAFETY_MSG })
+        fullText = SAFETY_MSG
+        break
       }
-
-      controller.enqueue(send({ done: true, convId }))
-      controller.close()
-
-      if (convId && fullText) {
-        void (async () => {
-          try { await getSupabase().from('messages').insert({ conversation_id: convId, role: 'assistant', content: fullText } as any) } catch {}
-        })()
+      if (chunk.text) {
+        fullText += chunk.text
+        send({ t: chunk.text })
       }
-    },
-  })
+    }
+  } catch {
+    send({ error: 'Error al conectar con la IA. Intenta de nuevo.' })
+  }
+
+  send({ done: true, convId })
+  nodeRes.end()
+
+  if (convId && fullText) {
+    void (async () => {
+      try { await getSupabase().from('messages').insert({ conversation_id: convId, role: 'assistant', content: fullText } as any) } catch {}
+    })()
+  }
 })
