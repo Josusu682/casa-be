@@ -271,12 +271,14 @@ async function sendMessage() {
 
     outer: while (true) {
       const { done, value } = await reader.read()
+      console.log('[stream] read done:', done, 'bytes:', value?.length)
       if (done) break
       buf += decoder.decode(value, { stream: true })
       const lines = buf.split('\n')
       buf = lines.pop() ?? ''
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue
+        console.log('[stream] line:', line.slice(0, 120))
         try {
           const ev = JSON.parse(line.slice(6))
           if (ev.t) {
