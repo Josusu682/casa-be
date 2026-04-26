@@ -164,8 +164,10 @@ export default defineEventHandler(async (event) => {
         send({ t: chunk.text })
       }
     }
-  } catch {
-    send({ error: 'Error al conectar con la IA. Intenta de nuevo.' })
+  } catch (err: any) {
+    const msg = err?.message ?? 'Error desconocido'
+    console.error('[chat] stream error:', msg)
+    send({ error: `Error al conectar con la IA: ${msg}` })
   }
 
   send({ done: true, convId })
