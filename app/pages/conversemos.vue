@@ -169,7 +169,11 @@ const suggestions = [
 ]
 
 function formatText(text: string) {
-  return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br />')
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\/audio\/([^\s<]+\.mp3)/g, '<audio controls src="/audio/$1" style="width:100%;max-width:360px;margin-top:10px;display:block;border-radius:4px;"></audio>')
+    .replace(/\n/g, '<br />')
 }
 function formatTime(date: Date) {
   return date.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
