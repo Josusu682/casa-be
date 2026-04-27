@@ -4,7 +4,7 @@ import { SYSTEM_PROMPT } from '../../../AI-Context/system-prompt'
 const DEEPSEEK_MODEL = 'deepseek-v4-flash'
 const MAX_HISTORY    = 20
 
-async function* streamDeepSeek(messages: { role: string; content: string }[], apiKey: string) {
+async function* streamDeepSeek(messages: { role: string; content: string }[], apiKey: string, systemPrompt: string) {
   if (!apiKey) throw new Error('DeepSeek API key no configurada.')
   const ac = new AbortController()
   const t  = setTimeout(() => ac.abort(), 8000)
@@ -14,7 +14,7 @@ async function* streamDeepSeek(messages: { role: string; content: string }[], ap
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
       model:       DEEPSEEK_MODEL,
-      messages:    [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
+      messages:    [{ role: 'system', content: systemPrompt }, ...messages],
       max_tokens:  800,
       temperature: 0.75,
       stream:      true,
@@ -56,7 +56,7 @@ export default defineEventHandler(async (event) => {
 
   const { data: profile } = await getSupabase()
     .from('profiles')
-    .select('role')
+    .select('role, memory')
     .eq('id', user.id)
     .single()
   if ((profile as any)?.role !== 'admin')
@@ -117,8 +117,13 @@ export default defineEventHandler(async (event) => {
     }
   }, 30000)
 
+  const userMemory = ((profile as any)?.memory ?? '').trim()
+  const systemPrompt = userMemory
+    ? `${SYSTEM_PROMPT}\n\n---\nContexto acumulado sobre este usuario (de conversaciones anteriores):\n${userMemory}`
+    : SYSTEM_PROMPT
+
   try {
-    const source = streamDeepSeek(trimmed, deepseekKey)
+    const source = streamDeepSeek(trimmed, deepseekKey, systemPrompt)
 
     for await (const chunk of source) {
       if (streamDone) break

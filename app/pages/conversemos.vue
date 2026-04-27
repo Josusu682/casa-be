@@ -124,6 +124,9 @@
                 <StopIcon v-if="speakingIdx === i" style="width:17px;height:17px;"/>
                 <SpeakerWaveIcon v-else style="width:17px;height:17px;"/>
               </button>
+              <button v-if="debugLog.length" class="msg-action" :class="{ 'msg-action--active': showDebug }" @click="showDebug = !showDebug" :title="showDebug ? 'Ocultar debug' : 'Mostrar debug'">
+                <BugAntIcon style="width:17px;height:17px;"/>
+              </button>
             </div>
           </article>
 
@@ -141,7 +144,7 @@
             </div>
           </div>
 
-          <div v-if="debugLog.length" class="debug-panel">
+          <div v-if="debugLog.length && showDebug" class="debug-panel">
             <div class="debug-panel__header">
               <span>🔍 DEBUG</span>
               <button class="debug-panel__clear" @click="debugLog = []">limpiar</button>
@@ -178,7 +181,7 @@
 </template>
 
 <script setup lang="ts">
-import { HandThumbUpIcon, HandThumbDownIcon, SpeakerWaveIcon, StopIcon } from '@heroicons/vue/24/outline'
+import { HandThumbUpIcon, HandThumbDownIcon, SpeakerWaveIcon, StopIcon, BugAntIcon } from '@heroicons/vue/24/outline'
 definePageMeta({ middleware: 'auth' })
 
 interface Message  { role: 'user' | 'assistant'; content: string; timestamp: Date }
@@ -207,6 +210,7 @@ const dbgAttempt     = ref(0)
 const dbgContinuations = ref(0)
 const dbgPartialLen  = ref(0)
 const dbgFullTextLen = ref(0)
+const showDebug      = ref(true)
 function dbg(msg: string) {
   const ts = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   debugLog.value.push(`[${ts}] ${msg}`)
@@ -458,6 +462,16 @@ async function sendMessage() {
       stopTimer(); streaming.value = false; streamingText.value = ''
       scrollToBottom(true)
       await fetchHistory()
+      if (conversationId.value) {
+        const memToken = await getToken().catch(() => null)
+        if (memToken) {
+          $fetch('/api/me/update-memory', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${memToken}` },
+            body: { conversationId: conversationId.value },
+          }).catch(() => {})
+        }
+      }
       lastError = null
       break
 
