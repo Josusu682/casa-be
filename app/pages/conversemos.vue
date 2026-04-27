@@ -325,6 +325,7 @@ async function sendMessage() {
       const token = await getToken()
       if (!token) { router.push('/login'); return }
 
+      const connectTimeoutId = setTimeout(() => controller.abort(), 12000)
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -335,6 +336,7 @@ async function sendMessage() {
           model:          'deepseek',
         }),
       })
+      clearTimeout(connectTimeoutId)
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
