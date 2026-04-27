@@ -1,8 +1,50 @@
 import { getSupabase } from '../utils/supabase'
 import { SYSTEM_PROMPT } from '../../../AI-Context/system-prompt'
 
-const MODEL      = 'gemini-3.1-flash-lite-preview'
-const MAX_HISTORY = 20
+const DEEPSEEK_MODEL = 'deepseek-v4-flash'
+const MAX_HISTORY    = 20
+
+async function* streamDeepSeek(messages: { role: string; content: string }[], apiKey: string) {
+  if (!apiKey) throw new Error('DeepSeek API key no configurada.')
+  const ac = new AbortController()
+  const t  = setTimeout(() => ac.abort(), 25000)
+  const res = await fetch('https://api.deepseek.com/chat/completions', {
+    method: 'POST',
+    signal: ac.signal,
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model:       DEEPSEEK_MODEL,
+      messages:    [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
+      max_tokens:  800,
+      temperature: 0.75,
+      stream:      true,
+    }),
+  })
+  clearTimeout(t)
+  if (!res.ok) throw new Error(`DeepSeek ${res.status}`)
+
+  const reader  = res.body!.getReader()
+  const decoder = new TextDecoder()
+  let buf = ''
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buf += decoder.decode(value, { stream: true })
+    const lines = buf.split('\n')
+    buf = lines.pop() ?? ''
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue
+      const raw = line.slice(6).trim()
+      if (raw === '[DONE]') return
+      try {
+        const chunk = JSON.parse(raw)
+        const text  = chunk.choices?.[0]?.delta?.content ?? ''
+        if (text) yield { text }
+      } catch {}
+    }
+  }
+}
 
 export default defineEventHandler(async (event) => {
   const authHeader = getHeader(event, 'authorization')
@@ -12,15 +54,22 @@ export default defineEventHandler(async (event) => {
   const { data: { user }, error: authError } = await getSupabase().auth.getUser(token)
   if (authError || !user) throw createError({ statusCode: 401, statusMessage: 'Sesión inválida.' })
 
+  const { data: profile } = await getSupabase()
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+  if ((profile as any)?.role !== 'admin')
+    throw createError({ statusCode: 403, statusMessage: 'No tienes acceso al chat.' })
+
   const config = useRuntimeConfig()
-  const { messages, conversationId } = await readBody(event)
+  const { messages, conversationId, model } = await readBody(event)
 
-  if (!Array.isArray(messages) || messages.length === 0) {
+  if (!Array.isArray(messages) || messages.length === 0)
     throw createError({ statusCode: 400, statusMessage: 'Se requieren mensajes.' })
-  }
 
-  const apiKey = config.geminiApiKey as string
-  if (!apiKey) throw createError({ statusCode: 500, statusMessage: 'API key no configurada.' })
+  const deepseekKey = config.deepseekApiKey as string
+  if (!deepseekKey) throw createError({ statusCode: 500, statusMessage: 'API key no configurada.' })
 
   let convId: number | null = conversationId ?? null
   if (!convId) {
@@ -35,52 +84,49 @@ export default defineEventHandler(async (event) => {
   const lastMsg = messages[messages.length - 1]
   if (lastMsg?.role === 'user' && convId) {
     await getSupabase().from('messages').insert({
-      conversation_id: convId,
-      role:            'user',
-      content:         lastMsg.content,
+      conversation_id: convId, role: 'user', content: lastMsg.content,
     } as any)
   }
 
-  const trimmed  = messages.slice(-MAX_HISTORY)
-  const contents = trimmed.map((m: { role: string; content: string }) => ({
-    role:  m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content }],
-  }))
+  const trimmed = (messages as { role: string; content: string }[]).slice(-MAX_HISTORY)
 
-  const geminiRes = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
-    {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents,
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        generationConfig:  { maxOutputTokens: 800, temperature: 0.75 },
-      }),
+  const nodeRes = event.node.res
+  nodeRes.setHeader('Content-Type', 'text/event-stream')
+  nodeRes.setHeader('Cache-Control', 'no-cache')
+  nodeRes.setHeader('X-Accel-Buffering', 'no')
+  nodeRes.flushHeaders()
+
+  const send = (data: object) => {
+    nodeRes.write(`data: ${JSON.stringify(data)}\n\n`)
+  }
+
+  const keepalive = setInterval(() => {
+    try { nodeRes.write(': keepalive\n\n') } catch {}
+  }, 5000)
+
+  let fullText = ''
+  try {
+    const source = streamDeepSeek(trimmed, deepseekKey)
+
+    for await (const chunk of source) {
+      if (chunk.text) {
+        fullText += chunk.text
+        send({ t: chunk.text })
+      }
     }
-  )
-
-  if (!geminiRes.ok) {
-    const err = await geminiRes.text().catch(() => 'unknown')
-    throw createError({ statusCode: 502, statusMessage: 'Error al conectar con la IA.', data: err })
+  } catch (err: any) {
+    const msg = err?.message ?? 'Error desconocido'
+    console.error('[chat] stream error:', msg)
+    send({ error: `Error al conectar con la IA: ${msg}` })
   }
 
-  const json     = await geminiRes.json()
-  const reply    = json.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+  clearInterval(keepalive)
+  send({ done: true, convId })
+  nodeRes.end()
 
-  if (!reply) {
-    throw createError({ statusCode: 502, statusMessage: 'Respuesta vacía de la IA.' })
-  }
-
-  if (convId) {
+  if (convId && fullText) {
     void (async () => {
-      await getSupabase().from('messages').insert({
-        conversation_id: convId,
-        role:            'assistant',
-        content:         reply,
-      } as any)
+      try { await getSupabase().from('messages').insert({ conversation_id: convId, role: 'assistant', content: fullText } as any) } catch {}
     })()
   }
-
-  return { reply, conversationId: convId }
 })

@@ -108,20 +108,8 @@
         </template>
       </div>
 
-      <!-- Model selector + Input -->
+      <!-- Input -->
       <div class="chat-input-area">
-        <div class="model-selector">
-          <button
-            class="model-selector__btn"
-            :class="{ 'model-selector__btn--active': selectedModel === 'gemini' }"
-            @click="selectedModel = 'gemini'"
-          >Gemini</button>
-          <button
-            class="model-selector__btn"
-            :class="{ 'model-selector__btn--active': selectedModel === 'deepseek' }"
-            @click="selectedModel = 'deepseek'"
-          >DeepSeek</button>
-        </div>
         <form class="chat-input" @submit.prevent="sendMessage">
           <textarea
             ref="inputEl"
@@ -166,7 +154,6 @@ const streamingText   = ref('')
 const conversationId  = ref<number | null>(null)
 const elapsedSecs     = ref(0)
 const sidebarOpen     = ref(false)
-const selectedModel   = ref<'gemini' | 'deepseek'>('gemini')
 const history         = ref<ConvItem[]>([])
 const loadingHistory  = ref(false)
 const loadingMessages = ref(false)
@@ -320,7 +307,7 @@ async function sendMessage() {
         body:    JSON.stringify({
           messages:       messages.value.map(m => ({ role: m.role, content: m.content })),
           conversationId: conversationId.value,
-          model:          selectedModel.value,
+          model:          'deepseek',
         }),
       })
 
@@ -525,24 +512,6 @@ onMounted(fetchHistory)
 .chat-topbar__label {
   font-family: 'Acumin Concept', sans-serif; font-size: 0.8rem;
   letter-spacing: 0.08em; color: rgba(255,255,255,0.4); text-transform: uppercase;
-}
-
-/* ── MODEL SELECTOR ── */
-.model-selector {
-  display: flex;
-  border: 1px solid rgba(255,255,255,0.12);
-  overflow: hidden;
-}
-.model-selector__btn {
-  background: none; border: none; padding: 0.3rem 0.85rem;
-  font-family: 'Acumin Concept', sans-serif; font-size: 0.72rem;
-  letter-spacing: 0.06em; color: rgba(255,255,255,0.45);
-  cursor: pointer; transition: background 0.15s, color 0.15s;
-}
-.model-selector__btn:first-child { border-right: 1px solid rgba(255,255,255,0.12); }
-.model-selector__btn:hover { color: rgba(255,255,255,0.85); }
-.model-selector__btn--active {
-  background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.95);
 }
 
 /* ── MESSAGES ── */
