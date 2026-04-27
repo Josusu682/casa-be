@@ -15,7 +15,7 @@ async function* streamDeepSeek(messages: { role: string; content: string }[], ap
     body: JSON.stringify({
       model:       DEEPSEEK_MODEL,
       messages:    [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
-      max_tokens:  400,
+      max_tokens:  800,
       temperature: 0.75,
       stream:      true,
     }),

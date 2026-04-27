@@ -298,18 +298,28 @@ async function sendMessage() {
 
   streaming.value = true; streamingText.value = ''; startTimer()
 
-  const MAX_RETRIES = 2
-  let attempt = 0
-  let lastError: any = null
+  const MAX_RETRIES      = 2
+  const MAX_CONTINUATIONS = 4
+  let attempt            = 0
+  let continuations      = 0
+  let partialSoFar       = ''
+  let isContinuation     = false
+  let lastError: any     = null
 
   while (attempt <= MAX_RETRIES) {
-    if (attempt > 0) {
+    if (attempt > 0 && !isContinuation) {
       const errMsg = lastError?.message ?? 'error desconocido'
       console.warn(`[retry] intento ${attempt}/${MAX_RETRIES} — error:`, errMsg)
       streamingText.value = `Reintento fallido (${attempt}/${MAX_RETRIES}): ${errMsg}. Reintentando en 10s...`
       await new Promise(r => setTimeout(r, 10000))
-      streamingText.value = ''
+      streamingText.value = partialSoFar
     }
+    isContinuation = false
+
+    const baseMessages    = messages.value.map(m => ({ role: m.role, content: m.content }))
+    const messagesForReq  = partialSoFar
+      ? [...baseMessages, { role: 'assistant' as const, content: partialSoFar }]
+      : baseMessages
 
     const controller = new AbortController()
     const timeout    = setTimeout(() => controller.abort(), 55000)
@@ -331,7 +341,7 @@ async function sendMessage() {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         signal: controller.signal,
         body: JSON.stringify({
-          messages:       messages.value.map(m => ({ role: m.role, content: m.content })),
+          messages:       messagesForReq,
           conversationId: conversationId.value,
           model:          'deepseek',
         }),
@@ -384,9 +394,21 @@ async function sendMessage() {
         }
       }
 
+      if (!gotDone && fullText !== '') {
+        partialSoFar += fullText
+        streamingText.value = partialSoFar
+        if (continuations < MAX_CONTINUATIONS) {
+          continuations++; isContinuation = true; continue
+        }
+        messages.value.push({ role: 'assistant', content: partialSoFar, timestamp: new Date() })
+        stopTimer(); streaming.value = false; streamingText.value = ''
+        scrollToBottom(true); await fetchHistory(); lastError = null; break
+      }
+
       if (!gotDone && fullText === '') throw new Error('Conexión interrumpida por el servidor')
 
-      messages.value.push({ role: 'assistant', content: fullText, timestamp: new Date() })
+      const finalText = partialSoFar + fullText
+      messages.value.push({ role: 'assistant', content: finalText, timestamp: new Date() })
       stopTimer(); streaming.value = false; streamingText.value = ''
       scrollToBottom(true)
       await fetchHistory()
