@@ -140,6 +140,17 @@
               </div>
             </div>
           </div>
+
+          <div v-if="debugLog.length" class="debug-panel">
+            <div class="debug-panel__header">
+              <span>🔍 DEBUG</span>
+              <button class="debug-panel__clear" @click="debugLog = []">limpiar</button>
+            </div>
+            <div class="debug-panel__row"><b>streaming:</b> {{ streaming }} | <b>elapsed:</b> {{ elapsedSecs }}s | <b>attempt:</b> {{ dbgAttempt }} | <b>continuations:</b> {{ dbgContinuations }}</div>
+            <div class="debug-panel__row"><b>fase:</b> {{ dbgPhase }}</div>
+            <div class="debug-panel__row"><b>partialSoFar len:</b> {{ dbgPartialLen }} | <b>fullText len:</b> {{ dbgFullTextLen }}</div>
+            <div v-for="(line, i) in debugLog" :key="i" class="debug-panel__line">{{ line }}</div>
+          </div>
         </template>
       </div>
 
@@ -189,6 +200,19 @@ const history         = ref<ConvItem[]>([])
 const loadingHistory  = ref(false)
 const loadingMessages = ref(false)
 let   _timer: ReturnType<typeof setInterval> | null = null
+
+const debugLog       = ref<string[]>([])
+const dbgPhase       = ref('')
+const dbgAttempt     = ref(0)
+const dbgContinuations = ref(0)
+const dbgPartialLen  = ref(0)
+const dbgFullTextLen = ref(0)
+function dbg(msg: string) {
+  const ts = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  debugLog.value.push(`[${ts}] ${msg}`)
+  if (debugLog.value.length > 80) debugLog.value.shift()
+  console.log('[DBG]', msg)
+}
 
 const ratings     = ref<Record<number, 'up' | 'down'>>({})
 const speakingIdx = ref<number | null>(null)
@@ -297,6 +321,8 @@ async function sendMessage() {
   scrollToBottom(true)
 
   streaming.value = true; streamingText.value = ''; startTimer()
+  debugLog.value = []; dbgPhase.value = 'iniciando'
+  dbg('sendMessage iniciado')
 
   const MAX_RETRIES      = 2
   const MAX_CONTINUATIONS = 4
@@ -315,6 +341,9 @@ async function sendMessage() {
       streamingText.value = partialSoFar
     }
     isContinuation = false
+
+    dbgAttempt.value = attempt; dbgContinuations.value = continuations
+    dbg(`while loop: attempt=${attempt} continuations=${continuations} partialLen=${partialSoFar.length}`)
 
     const baseMessages    = messages.value.map(m => ({ role: m.role, content: m.content }))
     const messagesForReq  = partialSoFar
@@ -335,7 +364,9 @@ async function sendMessage() {
       const token = await getToken()
       if (!token) { router.push('/login'); return }
 
-      const connectTimeoutId = setTimeout(() => controller.abort(), 12000)
+      dbgPhase.value = 'fetch...'
+      dbg('fetch iniciado (connectTimeout=12s)')
+      const connectTimeoutId = setTimeout(() => { dbg('connectTimeout DISPARADO a 12s'); controller.abort() }, 12000)
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -347,6 +378,8 @@ async function sendMessage() {
         }),
       })
       clearTimeout(connectTimeoutId)
+      dbg(`fetch resolvió → status=${res.status}`)
+      dbgPhase.value = `fetch OK (${res.status})`
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
@@ -357,6 +390,8 @@ async function sendMessage() {
       const decoder = new TextDecoder()
       let buf = ''
 
+      dbgPhase.value = 'leyendo stream...'
+      dbg('reader obtenido, noTokenTimer iniciado (20s)')
       resetNoTokenTimer()
 
       const readChunk = () => Promise.race([
@@ -379,13 +414,17 @@ async function sendMessage() {
           try {
             const ev = JSON.parse(line.slice(6))
             if (ev.t) {
+              if (fullText.length === 0) dbg('PRIMER TOKEN recibido')
               resetNoTokenTimer()
+              dbgFullTextLen.value = fullText.length + ev.t.length
               streamingText.value += ev.t; fullText += ev.t; scrollToBottom()
             } else if (ev.replace) {
               streamingText.value = ev.replace; fullText = ev.replace
             } else if (ev.error) {
+              dbg(`ev.error recibido: ${ev.error}`)
               throw new Error(ev.error)
             } else if (ev.done) {
+              dbg(`ev.done recibido — fullText.length=${fullText.length}`)
               gotDone = true
               if (ev.convId) conversationId.value = ev.convId
               break outer
@@ -396,6 +435,8 @@ async function sendMessage() {
 
       if (!gotDone && fullText !== '') {
         partialSoFar += fullText
+        dbgPartialLen.value = partialSoFar.length
+        dbg(`stream cortado (Vercel?) — partial=${partialSoFar.length}ch continuations=${continuations}/${MAX_CONTINUATIONS}`)
         streamingText.value = partialSoFar
         if (continuations < MAX_CONTINUATIONS) {
           continuations++; isContinuation = true; continue
@@ -405,7 +446,7 @@ async function sendMessage() {
         scrollToBottom(true); await fetchHistory(); lastError = null; break
       }
 
-      if (!gotDone && fullText === '') throw new Error('Conexión interrumpida por el servidor')
+      if (!gotDone && fullText === '') { dbg('stream cerró SIN done y SIN texto'); throw new Error('Conexión interrumpida por el servidor') }
 
       const finalText = partialSoFar + fullText
       messages.value.push({ role: 'assistant', content: finalText, timestamp: new Date() })
@@ -417,9 +458,11 @@ async function sendMessage() {
 
     } catch (err: any) {
       lastError = err
+      dbg(`CATCH: ${err?.name} — ${err?.message}`)
+      dbgPhase.value = `error: ${err?.message?.slice(0,40)}`
       if (noTokenTimer) clearTimeout(noTokenTimer)
       const isAuth  = /401|403|sesión|acceso/.test(err?.message ?? '')
-      if (isAuth || attempt >= MAX_RETRIES) break
+      if (isAuth || attempt >= MAX_RETRIES) { dbg(`break — isAuth=${isAuth} attempt=${attempt}`); break }
       attempt++
     } finally {
       clearTimeout(timeout)
@@ -594,4 +637,11 @@ onMounted(fetchHistory)
 .msg-action--active { color: rgba(255,255,255,0.95); }
 
 .chat-disclaimer { font-family: 'Acumin Concept', sans-serif; font-size: 0.75rem; color: rgba(255,255,255,0.22); text-align: center; padding: 0 1.5rem 1.25rem; }
+
+/* ── DEBUG PANEL ── */
+.debug-panel { margin-top: 8px; background: #0a0f0b; border: 1px solid #2a5c2a; padding: 10px 12px; font-family: monospace; font-size: 0.72rem; color: #7dff7d; max-width: 100%; word-break: break-all; }
+.debug-panel__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-weight: bold; color: #afffaf; }
+.debug-panel__clear { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); font-size: 0.65rem; padding: 2px 8px; cursor: pointer; }
+.debug-panel__row { color: #9fe89f; margin-bottom: 3px; }
+.debug-panel__line { color: #7dff7d; padding: 1px 0; border-top: 1px solid rgba(255,255,255,0.04); }
 </style>
