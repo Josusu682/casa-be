@@ -136,7 +136,8 @@ export default defineEventHandler(async (event) => {
   clearTimeout(streamTimeout)
   if (!streamDone) {
     clearInterval(keepalive)
-    send({ done: true, convId })
+    console.log('[chat] done — tokens:', fullText.length, 'chars')
+    send({ done: true, convId, tokenChars: fullText.length })
     nodeRes.end()
     streamDone = true
   }

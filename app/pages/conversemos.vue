@@ -322,6 +322,7 @@ async function sendMessage() {
 
   streaming.value = true; streamingText.value = ''; startTimer()
   debugLog.value = []; dbgPhase.value = 'iniciando'
+  dbgFullTextLen.value = 0; dbgPartialLen.value = 0
   dbg('sendMessage iniciado')
 
   const MAX_RETRIES      = 2
@@ -424,7 +425,7 @@ async function sendMessage() {
               dbg(`ev.error recibido: ${ev.error}`)
               throw new Error(ev.error)
             } else if (ev.done) {
-              dbg(`ev.done recibido — fullText.length=${fullText.length}`)
+              dbg(`ev.done recibido — client fullText=${fullText.length} | server tokenChars=${ev.tokenChars ?? '?'}`)
               gotDone = true
               if (ev.convId) conversationId.value = ev.convId
               break outer
@@ -449,6 +450,10 @@ async function sendMessage() {
       if (!gotDone && fullText === '') { dbg('stream cerró SIN done y SIN texto'); throw new Error('Conexión interrumpida por el servidor') }
 
       const finalText = partialSoFar + fullText
+      if (!finalText) {
+        dbg('RESPUESTA VACÍA — reintentando')
+        throw new Error('La IA no generó respuesta (vacía). Reintentando...')
+      }
       messages.value.push({ role: 'assistant', content: finalText, timestamp: new Date() })
       stopTimer(); streaming.value = false; streamingText.value = ''
       scrollToBottom(true)
