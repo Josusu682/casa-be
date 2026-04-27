@@ -206,7 +206,7 @@ function formatText(text: string) {
   return text
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/\/audio\/([^\s<]+\.mp3)/g, '<audio controls src="/audio/$1" style="width:100%;max-width:360px;margin-top:10px;display:block;border-radius:4px;"></audio>')
+    .replace(/\/audio\/([^\s<]+\.mp3)/g, `<div style="margin-top:18px;padding:14px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);"><p style="font-family:'Acumin Concept',sans-serif;font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.38);margin:0 0 10px 0;">Música para esta práctica</p><audio autoplay controls src="/audio/$1" style="width:100%;height:28px;accent-color:#7ab87a;display:block;"></audio></div>`)
     .replace(/\n/g, '<br />')
 }
 function formatTime(date: Date) {
@@ -362,8 +362,6 @@ async function sendMessage() {
       messages.value.push({ role: 'assistant', content: fullText, timestamp: new Date() })
       stopTimer(); streaming.value = false; streamingText.value = ''
       scrollToBottom(true)
-      const audioMatch = fullText.match(/\/audio\/([^\s<]+\.mp3)/)
-      if (audioMatch) { const a = new Audio(audioMatch[0]); a.play().catch(() => {}) }
       await fetchHistory()
       lastError = null
       break
