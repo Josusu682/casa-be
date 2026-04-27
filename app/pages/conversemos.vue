@@ -362,6 +362,8 @@ async function sendMessage() {
       messages.value.push({ role: 'assistant', content: fullText, timestamp: new Date() })
       stopTimer(); streaming.value = false; streamingText.value = ''
       scrollToBottom(true)
+      const audioMatch = fullText.match(/\/audio\/([^\s<]+\.mp3)/)
+      if (audioMatch) { const a = new Audio(audioMatch[0]); a.play().catch(() => {}) }
       await fetchHistory()
       lastError = null
       break
