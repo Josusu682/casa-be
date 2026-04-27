@@ -312,7 +312,7 @@ async function sendMessage() {
     }
 
     const controller = new AbortController()
-    const timeout    = setTimeout(() => controller.abort(), 30000)
+    const timeout    = setTimeout(() => controller.abort(), 55000)
     let gotDone      = false
     let fullText     = ''
 
@@ -385,9 +385,8 @@ async function sendMessage() {
 
     } catch (err: any) {
       lastError = err
-      const isAbort = err?.name === 'AbortError' || String(err?.message).includes('abort')
       const isAuth  = /401|403|sesión|acceso/.test(err?.message ?? '')
-      if (isAbort || isAuth || attempt >= MAX_RETRIES) break
+      if (isAuth || attempt >= MAX_RETRIES) break
       attempt++
     } finally {
       clearTimeout(timeout)

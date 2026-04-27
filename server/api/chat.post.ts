@@ -58,7 +58,7 @@ async function* streamGemini(contents: unknown[], apiKey: string) {
 async function* streamDeepSeek(messages: { role: string; content: string }[], apiKey: string) {
   if (!apiKey) throw new Error('DeepSeek API key no configurada.')
   const ac = new AbortController()
-  const t  = setTimeout(() => ac.abort(), 25000)
+  const t  = setTimeout(() => ac.abort(), 8000)
   const res = await fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
     signal: ac.signal,
@@ -66,7 +66,7 @@ async function* streamDeepSeek(messages: { role: string; content: string }[], ap
     body: JSON.stringify({
       model:       DEEPSEEK_MODEL,
       messages:    [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
-      max_tokens:  800,
+      max_tokens:  400,
       temperature: 0.75,
       stream:      true,
     }),
@@ -157,6 +157,18 @@ export default defineEventHandler(async (event) => {
   }, 5000)
 
   let fullText = ''
+  let streamDone = false
+  const streamTimeout = setTimeout(() => {
+    if (!streamDone) {
+      console.error('[chat] timeout total de 30s alcanzado')
+      clearInterval(keepalive)
+      send({ error: 'La IA tardó demasiado en responder. Intenta de nuevo.' })
+      send({ done: true, convId })
+      nodeRes.end()
+      streamDone = true
+    }
+  }, 30000)
+
   try {
     const source = model === 'deepseek'
       ? streamDeepSeek(trimmed, deepseekKey)
@@ -166,6 +178,7 @@ export default defineEventHandler(async (event) => {
         )
 
     for await (const chunk of source) {
+      if (streamDone) break
       if ('blocked' in chunk && chunk.blocked) {
         send({ replace: SAFETY_MSG })
         fullText = SAFETY_MSG
@@ -179,12 +192,16 @@ export default defineEventHandler(async (event) => {
   } catch (err: any) {
     const msg = err?.message ?? 'Error desconocido'
     console.error('[chat] stream error:', msg)
-    send({ error: `Error al conectar con la IA: ${msg}` })
+    if (!streamDone) send({ error: `Error al conectar con la IA: ${msg}` })
   }
 
-  clearInterval(keepalive)
-  send({ done: true, convId })
-  nodeRes.end()
+  clearTimeout(streamTimeout)
+  if (!streamDone) {
+    clearInterval(keepalive)
+    send({ done: true, convId })
+    nodeRes.end()
+    streamDone = true
+  }
 
   if (convId && fullText) {
     void (async () => {
