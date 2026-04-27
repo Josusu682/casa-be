@@ -315,6 +315,11 @@ async function sendMessage() {
     const timeout    = setTimeout(() => controller.abort(), 55000)
     let gotDone      = false
     let fullText     = ''
+    let noTokenTimer: ReturnType<typeof setTimeout> | null = null
+    const resetNoTokenTimer = () => {
+      if (noTokenTimer) clearTimeout(noTokenTimer)
+      noTokenTimer = setTimeout(() => controller.abort(), 20000)
+    }
 
     try {
       const token = await getToken()
@@ -340,6 +345,8 @@ async function sendMessage() {
       const decoder = new TextDecoder()
       let buf = ''
 
+      resetNoTokenTimer()
+
       const readChunk = () => Promise.race([
         reader.read(),
         new Promise<never>((_, rej) =>
@@ -360,6 +367,7 @@ async function sendMessage() {
           try {
             const ev = JSON.parse(line.slice(6))
             if (ev.t) {
+              resetNoTokenTimer()
               streamingText.value += ev.t; fullText += ev.t; scrollToBottom()
             } else if (ev.replace) {
               streamingText.value = ev.replace; fullText = ev.replace
@@ -385,11 +393,13 @@ async function sendMessage() {
 
     } catch (err: any) {
       lastError = err
+      if (noTokenTimer) clearTimeout(noTokenTimer)
       const isAuth  = /401|403|sesión|acceso/.test(err?.message ?? '')
       if (isAuth || attempt >= MAX_RETRIES) break
       attempt++
     } finally {
       clearTimeout(timeout)
+      if (noTokenTimer) clearTimeout(noTokenTimer)
     }
   }
 
