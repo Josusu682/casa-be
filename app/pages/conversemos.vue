@@ -83,7 +83,7 @@
               <audio
                 :ref="(el) => { if(el) audioEls[i] = el; else delete audioEls[i] }"
                 :src="getAudioSrc(msg.content)!"
-                autoplay style="display:none"
+                style="display:none"
                 @timeupdate="updateAudioTime(i, $event)"
                 @loadedmetadata="setAudioDuration(i, $event)"
                 @ended="setAudioPlaying(i, false)"
@@ -133,7 +133,7 @@
               <span class="message__time">{{ elapsedSecs }}s</span>
             </div>
             <div class="message__bubble">
-              <span v-if="streamingText && !streamingText.startsWith('Reintentando')" class="message__text" v-html="formatText(streamingText)"></span>
+              <span v-if="streamingText && !streamingText.startsWith('Reintento')" class="message__text" v-html="formatText(streamingText)"></span>
               <div v-else class="message__loading-state">
                 <span class="message__dots"><span></span><span></span><span></span></span>
                 <span class="message__status">{{ streamingStatus }}</span>
@@ -212,7 +212,7 @@ function toggleSpeak(i: number, content: string) {
 }
 
 const streamingStatus = computed(() => {
-  if (streamingText.value.startsWith('Reintentando')) return streamingText.value
+  if (streamingText.value.startsWith('Reintento')) return streamingText.value
   const s = elapsedSecs.value
   if (s < 4)  return 'Conectando...'
   if (s < 12) return 'Generando respuesta...'
@@ -304,8 +304,9 @@ async function sendMessage() {
 
   while (attempt <= MAX_RETRIES) {
     if (attempt > 0) {
-      console.log(`[retry] intento ${attempt}/${MAX_RETRIES}`)
-      streamingText.value = `Reintentando (${attempt}/${MAX_RETRIES})...`
+      const errMsg = lastError?.message ?? 'error desconocido'
+      console.warn(`[retry] intento ${attempt}/${MAX_RETRIES} — error:`, errMsg)
+      streamingText.value = `Reintento fallido (${attempt}/${MAX_RETRIES}): ${errMsg}. Reintentando en 10s...`
       await new Promise(r => setTimeout(r, 10000))
       streamingText.value = ''
     }
