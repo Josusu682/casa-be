@@ -78,6 +78,29 @@
             <div class="message__bubble">
               <span class="message__text" v-html="formatText(msg.content)"></span>
             </div>
+            <div v-if="getAudioSrc(msg.content)" class="audio-player">
+              <audio
+                :ref="(el) => { if(el) audioEls[i] = el as HTMLAudioElement; else delete audioEls[i] }"
+                :src="getAudioSrc(msg.content)!"
+                autoplay
+                style="display:none"
+                @timeupdate="updateAudioTime(i, $event)"
+                @loadedmetadata="setAudioDuration(i, $event)"
+                @ended="setAudioPlaying(i, false)"
+                @play="setAudioPlaying(i, true)"
+                @pause="setAudioPlaying(i, false)"
+              ></audio>
+              <button class="audio-player__btn" @click="toggleAudio(i)">
+                <svg v-if="!audioStates[i]?.playing" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              </button>
+              <span class="audio-player__time">{{ formatAudioTime(audioStates[i]?.currentTime ?? 0) }}</span>
+              <div class="audio-player__track" @click="seekAudio(i, $event)">
+                <div class="audio-player__fill" :style="{ width: getAudioProgress(i) + '%' }"></div>
+                <div class="audio-player__thumb" :style="{ left: getAudioProgress(i) + '%' }"></div>
+              </div>
+              <span class="audio-player__duration">{{ formatAudioTime(audioStates[i]?.duration ?? 0) }}</span>
+            </div>
             <div v-if="msg.role === 'assistant'" class="message__actions">
               <button class="msg-action" :class="{ 'msg-action--active': ratings[i] === 'up' }" @click="rateMessage(i, 'up')" title="Me gustó">
                 <HandThumbUpIcon style="width:17px;height:17px;"/>
@@ -206,7 +229,7 @@ function formatText(text: string) {
   return text
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/\/audio\/([^\s<]+\.mp3)/g, `<div style="margin-top:18px;padding:14px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);"><p style="font-family:'Acumin Concept',sans-serif;font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.38);margin:0 0 10px 0;">Música para esta práctica</p><audio autoplay controls src="/audio/$1" style="width:100%;height:28px;accent-color:#7ab87a;display:block;"></audio></div>`)
+    .replace(/\/audio\/[^\s<]+\.mp3/g, '')
     .replace(/\n/g, '<br />')
 }
 function formatTime(date: Date) {
@@ -387,6 +410,43 @@ async function sendMessage() {
 
   stopTimer(); streaming.value = false; streamingText.value = ''
   scrollToBottom(true); nextTick(() => inputEl.value?.focus())
+}
+
+const audioEls: Record<number, HTMLAudioElement> = {}
+const audioStates = reactive<Record<number, { playing: boolean; currentTime: number; duration: number }>>({})
+
+function getAudioSrc(content: string): string | null {
+  const match = content.match(/\/audio\/[^\s<]+\.mp3/)
+  return match ? match[0] : null
+}
+function getAudioProgress(i: number) {
+  const s = audioStates[i]; return s?.duration ? (s.currentTime / s.duration) * 100 : 0
+}
+function updateAudioTime(i: number, e: Event) {
+  if (!audioStates[i]) audioStates[i] = { playing: false, currentTime: 0, duration: 0 }
+  audioStates[i].currentTime = (e.target as HTMLAudioElement).currentTime
+}
+function setAudioDuration(i: number, e: Event) {
+  if (!audioStates[i]) audioStates[i] = { playing: false, currentTime: 0, duration: 0 }
+  audioStates[i].duration = (e.target as HTMLAudioElement).duration
+}
+function setAudioPlaying(i: number, playing: boolean) {
+  if (!audioStates[i]) audioStates[i] = { playing: false, currentTime: 0, duration: 0 }
+  audioStates[i].playing = playing
+}
+function toggleAudio(i: number) {
+  const el = audioEls[i]; if (!el) return
+  el.paused ? el.play() : el.pause()
+}
+function seekAudio(i: number, e: MouseEvent) {
+  const el = audioEls[i]; if (!el || !el.duration) return
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  el.currentTime = ((e.clientX - rect.left) / rect.width) * el.duration
+}
+function formatAudioTime(secs: number) {
+  if (!secs || isNaN(secs)) return '0:00'
+  const m = Math.floor(secs / 60); const s = Math.floor(secs % 60)
+  return `${m}:${s.toString().padStart(2, '0')}`
 }
 
 onMounted(fetchHistory)
@@ -614,6 +674,41 @@ onMounted(fetchHistory)
 }
 .chat-input__btn:hover:not(:disabled) { background-color: rgba(255,255,255,0.2); }
 .chat-input__btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── AUDIO PLAYER ── */
+.audio-player {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 8px; padding: 10px 14px;
+  background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.07);
+  max-width: 340px;
+}
+.audio-player__btn {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.14);
+  color: rgba(255,255,255,0.85); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: background 0.15s;
+  padding-left: 1px;
+}
+.audio-player__btn:hover { background: rgba(255,255,255,0.18); }
+.audio-player__time, .audio-player__duration {
+  font-family: 'Acumin Concept', sans-serif; font-size: 0.65rem;
+  color: rgba(255,255,255,0.35); flex-shrink: 0; min-width: 26px;
+}
+.audio-player__time { text-align: right; }
+.audio-player__track {
+  flex: 1; height: 2px; background: rgba(255,255,255,0.1);
+  cursor: pointer; position: relative;
+}
+.audio-player__fill {
+  position: absolute; left: 0; top: 0; height: 100%;
+  background: #7ab87a; pointer-events: none;
+}
+.audio-player__thumb {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #7ab87a; pointer-events: none; transition: left 0.1s;
+}
 
 /* ── MESSAGE ACTIONS ── */
 .message__actions {
