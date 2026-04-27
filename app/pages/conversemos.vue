@@ -93,13 +93,16 @@
           </article>
 
           <div v-if="streaming" class="message message--assistant">
-            <div class="message__meta"><span class="message__label">BE</span></div>
+            <div class="message__meta">
+              <span class="message__label">BE</span>
+              <span class="message__time">{{ elapsedSecs }}s</span>
+            </div>
             <div class="message__bubble">
-              <span v-if="streamingText" class="message__text" v-html="formatText(streamingText)"></span>
-              <span v-else class="message__dots">
-                <span></span><span></span><span></span>
-                <span v-if="elapsedSecs > 2" class="message__elapsed">{{ elapsedSecs }}s</span>
-              </span>
+              <span v-if="streamingText && !streamingText.startsWith('Reintentando')" class="message__text" v-html="formatText(streamingText)"></span>
+              <div v-else class="message__loading-state">
+                <span class="message__dots"><span></span><span></span><span></span></span>
+                <span class="message__status">{{ streamingStatus }}</span>
+              </div>
             </div>
           </div>
         </template>
@@ -189,6 +192,16 @@ function toggleSpeak(i: number, content: string) {
   speakingIdx.value = i
   window.speechSynthesis.speak(utter)
 }
+
+const streamingStatus = computed(() => {
+  if (streamingText.value.startsWith('Reintentando')) return streamingText.value
+  const s = elapsedSecs.value
+  if (s < 4)  return 'Conectando...'
+  if (s < 12) return 'Generando respuesta...'
+  if (s < 25) return 'Esto está tardando un poco más de lo usual...'
+  if (s < 32) return 'Tiempo agotado, reintentando...'
+  return 'Reintentando conexión...'
+})
 
 function startTimer() { elapsedSecs.value = 0; _timer = setInterval(() => { elapsedSecs.value++ }, 1000) }
 function stopTimer()  { if (_timer) { clearInterval(_timer); _timer = null } }
@@ -292,7 +305,7 @@ async function sendMessage() {
     }
 
     const controller = new AbortController()
-    const timeout    = setTimeout(() => controller.abort(), 60000)
+    const timeout    = setTimeout(() => controller.abort(), 30000)
     let gotDone      = false
     let fullText     = ''
 
@@ -582,7 +595,12 @@ onMounted(fetchHistory)
 .message--user .message__bubble      { background-color: #3d5940; color: rgba(255,255,255,0.92); }
 .message--assistant .message__bubble { background-color: #2a3d2c; color: rgba(255,255,255,0.88); border: 1px solid rgba(255,255,255,0.06); }
 
-/* ── DOTS ── */
+/* ── DOTS + STATUS ── */
+.message__loading-state { display: flex; flex-direction: column; gap: 8px; }
+.message__status {
+  font-family: 'Acumin Concept', sans-serif; font-size: 0.78rem;
+  color: rgba(255,255,255,0.38); letter-spacing: 0.02em;
+}
 .message__dots { display: flex; gap: 5px; align-items: center; height: 20px; }
 .message__dots span {
   width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%;
