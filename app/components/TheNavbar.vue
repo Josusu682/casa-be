@@ -20,6 +20,14 @@
           <NuxtLink to="/conversemos" class="navbar__nav-link">Conversemos</NuxtLink>
         </div>
         <div class="navbar__auth">
+          <button class="navbar__cart-btn" @click="cart.isOpen.value = true" aria-label="Ver carrito">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M16 10a4 4 0 0 1-8 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span v-if="cart.totalItems.value > 0" class="navbar__cart-badge">{{ cart.totalItems }}</span>
+          </button>
           <div v-if="user" class="navbar__account" @mouseenter="dropdownOpen = true" @mouseleave="dropdownOpen = false">
             <button class="navbar__nav-link navbar__account-btn">Mi cuenta</button>
             <div class="navbar__dropdown" :class="{ 'navbar__dropdown--open': dropdownOpen }">
@@ -56,6 +64,15 @@
       <NuxtLink to="/" class="navbar__logo-link">
         <img src="/images/logo_be.png" alt="Casa BE" class="navbar__logo" />
       </NuxtLink>
+
+      <button class="navbar__cart-compact" @click="cart.isOpen.value = true" aria-label="Ver carrito">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M16 10a4 4 0 0 1-8 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span v-if="cart.totalItems.value > 0" class="navbar__cart-badge-compact">{{ cart.totalItems }}</span>
+      </button>
     </div>
 
     <!-- Overlay menú fullscreen -->
@@ -80,6 +97,7 @@
 
 <script setup>
 const { user, logout } = useAuth()
+const cart = useCart()
 const router = useRouter()
 
 const route        = useRoute()
@@ -186,7 +204,74 @@ const toggleMenu = () => {
 
 .navbar__auth {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 1.25rem;
+}
+
+/* Cart icon — desktop */
+.navbar__cart-btn {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+.navbar__cart-btn:hover { color: #ffffff; }
+.navbar--chat .navbar__cart-btn { color: rgba(255, 255, 255, 0.8); }
+.navbar--chat .navbar__cart-btn:hover { color: #ffffff; }
+
+.navbar__cart-badge {
+  position: absolute;
+  top: -7px;
+  right: -9px;
+  background-color: #394e3c;
+  color: #f2f1eb;
+  font-family: 'Acumin Concept', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* Cart icon — mobile compact */
+.navbar__cart-compact {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #394e3c;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  z-index: 60;
+}
+
+.navbar__cart-badge-compact {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background-color: #394e3c;
+  color: #f2f1eb;
+  font-family: 'Acumin Concept', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 /* ── ACCOUNT DROPDOWN ── */

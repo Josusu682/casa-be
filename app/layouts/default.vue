@@ -4,4 +4,5 @@
     <slot />
 <!--  </main> -->
   <TheFooter />
+  <CartDrawer />
 </template>
