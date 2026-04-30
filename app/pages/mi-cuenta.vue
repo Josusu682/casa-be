@@ -321,6 +321,7 @@ const formatDate = (d: string) =>
   display: flex;
   flex-direction: column;
   gap: 0;
+  border-top: 1px solid rgba(57, 78, 60, 0.1);
 }
 .account-field {
   padding: 1.4rem 0;
