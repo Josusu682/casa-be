@@ -1,5 +1,39 @@
 <template>
-  <div class="account-page">
+  <!-- Skeleton de carga -->
+  <Transition name="page-fade">
+    <div v-if="pageLoading" class="account-page skeleton-page" key="skeleton">
+      <div class="account-hero">
+        <div class="account-hero__inner">
+          <div class="sk sk-circle"></div>
+          <div class="sk-info">
+            <div class="sk sk-bar sk-bar--lg"></div>
+            <div class="sk sk-bar sk-bar--md"></div>
+            <div class="sk sk-bar sk-bar--sm"></div>
+          </div>
+        </div>
+      </div>
+      <div class="account-tabs">
+        <div class="account-tabs__inner">
+          <div class="sk sk-tab"></div>
+          <div class="sk sk-tab"></div>
+        </div>
+      </div>
+      <div class="account-content">
+        <div class="account-content__inner">
+          <div class="sk sk-bar sk-bar--label" style="margin-bottom:2rem"></div>
+          <div class="sk-fields">
+            <div class="sk-field" v-for="i in 3" :key="i">
+              <div class="sk sk-bar sk-bar--label"></div>
+              <div class="sk sk-bar sk-bar--value"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Transition>
+
+  <Transition name="page-fade">
+  <div v-if="!pageLoading" class="account-page" key="content">
 
     <!-- Hero header -->
     <div class="account-hero">
@@ -117,6 +151,7 @@
     </div>
 
   </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
@@ -135,6 +170,7 @@ const activeTab = ref('datos')
 const profile = ref<any>(null)
 const orders  = ref<any[]>([])
 
+const pageLoading   = ref(true)
 const loadingOrders = ref(true)
 
 const editingName  = ref(false)
@@ -156,6 +192,7 @@ onMounted(async () => {
   if (ordersData.status === 'fulfilled')  orders.value  = ordersData.value  as any[]
 
   loadingOrders.value = false
+  pageLoading.value   = false
 })
 
 const avatarLetter = computed(() => {
@@ -564,5 +601,66 @@ const formatDate = (d: string) =>
 @media (max-width: 600px) {
   .account-hero__inner { flex-direction: column; align-items: flex-start; }
   .account-tabs__btn { font-size: 0.75rem; padding: 0.9rem 0.9rem; }
+}
+
+/* ── PAGE TRANSITION ── */
+.page-fade-enter-active,
+.page-fade-leave-active { transition: opacity 0.25s ease; }
+.page-fade-enter-from,
+.page-fade-leave-to     { opacity: 0; }
+
+/* ── SKELETON ── */
+@keyframes sk-pulse {
+  0%, 100% { opacity: 0.35; }
+  50%       { opacity: 0.6;  }
+}
+
+.sk {
+  border-radius: 2px;
+  animation: sk-pulse 1.6s ease-in-out infinite;
+}
+
+/* En el hero (fondo oscuro) → barras claras */
+.account-hero .sk { background-color: rgba(255, 255, 255, 0.18); }
+
+/* En tabs (fondo oscuro) */
+.account-tabs .sk { background-color: rgba(255, 255, 255, 0.15); }
+
+/* En el contenido (fondo claro) */
+.account-content .sk { background-color: rgba(57, 78, 60, 0.12); }
+
+.sk-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50% !important;
+  flex-shrink: 0;
+}
+
+.sk-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  flex: 1;
+}
+
+.sk-bar--lg    { height: 28px; width: 200px; max-width: 55%; }
+.sk-bar--md    { height: 14px; width: 220px; max-width: 60%; }
+.sk-bar--sm    { height: 12px; width: 140px; max-width: 40%; }
+.sk-bar--label { height: 11px; width: 110px; }
+.sk-bar--value { height: 17px; width: 240px; max-width: 70%; margin-top: 0.4rem; }
+
+.sk-tab {
+  height: 14px;
+  width: 90px;
+  margin: 1.1rem 1.25rem;
+}
+
+.sk-fields {
+  border-top: 1px solid rgba(57, 78, 60, 0.1);
+}
+
+.sk-field {
+  padding: 1.4rem 0;
+  border-bottom: 1px solid rgba(57, 78, 60, 0.1);
 }
 </style>
