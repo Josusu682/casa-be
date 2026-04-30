@@ -31,8 +31,10 @@
           <div v-if="user" class="navbar__account" @mouseenter="dropdownOpen = true" @mouseleave="dropdownOpen = false">
             <button class="navbar__nav-link navbar__account-btn">Mi cuenta</button>
             <div class="navbar__dropdown" :class="{ 'navbar__dropdown--open': dropdownOpen }">
-              <span class="navbar__dropdown-email">{{ user.email }}</span>
-              <button class="navbar__dropdown-logout" @click="handleLogout">Cerrar sesión</button>
+              <div class="navbar__dropdown-inner">
+                <span class="navbar__dropdown-email">{{ user.email }}</span>
+                <button class="navbar__dropdown-logout" @click="handleLogout">Cerrar sesión</button>
+              </div>
             </div>
           </div>
           <NuxtLink v-else to="/login" class="navbar__nav-link">Ingresar</NuxtLink>
@@ -286,20 +288,27 @@ const toggleMenu = () => {
 }
 .navbar__dropdown {
   position: absolute;
-  top: calc(100% + 0.75rem);
+  top: 100%;
   right: 0;
-  background: #fff;
-  border: 1px solid rgba(57, 78, 60, 0.12);
+  padding-top: 0.75rem;
+  background: transparent;
   min-width: 220px;
-  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
   opacity: 0;
   pointer-events: none;
   transform: translateY(-6px);
   transition: opacity 0.2s ease, transform 0.2s ease;
   z-index: 100;
+}
+
+.navbar__dropdown-inner {
+  background: #fff;
+  border: 1px solid rgba(57, 78, 60, 0.12);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 .navbar__dropdown--open {
   opacity: 1;
