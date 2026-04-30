@@ -69,11 +69,6 @@
             </div>
 
             <div class="account-field">
-              <label class="account-field__label">Tipo de cuenta</label>
-              <p class="account-field__value">{{ roleLabel }}</p>
-            </div>
-
-            <div class="account-field">
               <label class="account-field__label">Miembro desde</label>
               <p class="account-field__value">{{ memberSince }}</p>
             </div>
@@ -117,41 +112,6 @@
           </div>
         </section>
 
-        <!-- MIS CONVERSACIONES -->
-        <section v-else-if="activeTab === 'conversaciones'" class="account-section">
-          <h2 class="account-section__title">Mis conversaciones</h2>
-
-          <div v-if="loadingConvs" class="account-empty">Cargando...</div>
-
-          <div v-else-if="conversations.length === 0" class="account-empty">
-            <p>Aún no tienes conversaciones guardadas.</p>
-            <NuxtLink to="/conversemos" class="account-empty__link">
-              <span>Ir a conversemos</span>
-              <svg width="24" height="10" viewBox="0 0 30 12" fill="none">
-                <path d="M24 1L29 6L24 11" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M29 6L1 6" stroke="currentColor" stroke-width="0.8" stroke-linecap="round"/>
-              </svg>
-            </NuxtLink>
-          </div>
-
-          <div v-else class="convs-list">
-            <div class="convs-summary">
-              <span class="convs-summary__count">{{ conversations.length }}</span>
-              <span class="convs-summary__label">conversación{{ conversations.length !== 1 ? 'es' : '' }} guardada{{ conversations.length !== 1 ? 's' : '' }}</span>
-            </div>
-            <article v-for="conv in conversations" :key="conv.id" class="conv-card">
-              <p class="conv-card__preview">{{ conv.preview }}</p>
-              <span class="conv-card__date">{{ formatDate(conv.created_at) }}</span>
-            </article>
-            <NuxtLink to="/conversemos" class="account-empty__link" style="margin-top:1rem">
-              <span>Abrir chat</span>
-              <svg width="24" height="10" viewBox="0 0 30 12" fill="none">
-                <path d="M24 1L29 6L24 11" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M29 6L1 6" stroke="currentColor" stroke-width="0.8" stroke-linecap="round"/>
-              </svg>
-            </NuxtLink>
-          </div>
-        </section>
 
       </div>
     </div>
@@ -169,16 +129,13 @@ const router = useRouter()
 const tabs = [
   { id: 'datos',          label: 'Mis datos'         },
   { id: 'compras',        label: 'Mis compras'       },
-  { id: 'conversaciones', label: 'Conversaciones'    },
 ]
 const activeTab = ref('datos')
 
-const profile       = ref<any>(null)
-const orders        = ref<any[]>([])
-const conversations = ref<any[]>([])
+const profile = ref<any>(null)
+const orders  = ref<any[]>([])
 
 const loadingOrders = ref(true)
-const loadingConvs  = ref(true)
 
 const editingName  = ref(false)
 const nameInput    = ref('')
@@ -190,18 +147,15 @@ onMounted(async () => {
   const token = await getToken()
   const headers = { Authorization: `Bearer ${token}` }
 
-  const [profileData, ordersData, convsData] = await Promise.allSettled([
-    $fetch('/api/me/profile',       { headers }),
-    $fetch('/api/me/orders',        { headers }),
-    $fetch('/api/me/conversations', { headers }),
+  const [profileData, ordersData] = await Promise.allSettled([
+    $fetch('/api/me/profile', { headers }),
+    $fetch('/api/me/orders',  { headers }),
   ])
 
-  if (profileData.status === 'fulfilled')  profile.value       = profileData.value as any
-  if (ordersData.status === 'fulfilled')   orders.value        = ordersData.value  as any[]
-  if (convsData.status === 'fulfilled')    conversations.value = convsData.value   as any[]
+  if (profileData.status === 'fulfilled') profile.value = profileData.value as any
+  if (ordersData.status === 'fulfilled')  orders.value  = ordersData.value  as any[]
 
   loadingOrders.value = false
-  loadingConvs.value  = false
 })
 
 const avatarLetter = computed(() => {
@@ -215,8 +169,6 @@ const memberSince = computed(() => {
   return new Date(d).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
 })
 
-const ROLE_LABELS: Record<string, string> = { admin: 'Administrador', customer: 'Cliente' }
-const roleLabel = computed(() => ROLE_LABELS[profile.value?.role ?? ''] ?? profile.value?.role ?? 'Cliente')
 
 function startEditName() {
   nameInput.value   = profile.value?.display_name ?? ''
