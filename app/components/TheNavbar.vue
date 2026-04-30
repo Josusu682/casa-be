@@ -33,6 +33,7 @@
             <div class="navbar__dropdown" :class="{ 'navbar__dropdown--open': dropdownOpen }">
               <div class="navbar__dropdown-inner">
                 <span class="navbar__dropdown-email">{{ user.email }}</span>
+                <NuxtLink to="/mi-cuenta" class="navbar__dropdown-link">Mi cuenta</NuxtLink>
                 <button class="navbar__dropdown-logout" @click="handleLogout">Cerrar sesión</button>
               </div>
             </div>
@@ -88,6 +89,7 @@
         <NuxtLink to="/conversemos" class="navbar__overlay-link" @click="toggleMenu">Conversemos</NuxtLink>
         <template v-if="user">
           <span class="navbar__overlay-email">{{ user.email }}</span>
+          <NuxtLink to="/mi-cuenta" class="navbar__overlay-link" @click="toggleMenu">Mi cuenta</NuxtLink>
           <button class="navbar__overlay-link navbar__overlay-logout" @click="handleLogout">Cerrar sesión</button>
         </template>
         <NuxtLink v-else to="/login" class="navbar__overlay-link" @click="toggleMenu">Ingresar</NuxtLink>
@@ -106,7 +108,7 @@ const route        = useRoute()
 const isMenuOpen   = ref(false)
 const isScrolled   = ref(false)
 const dropdownOpen = ref(false)
-const isChat       = computed(() => route.path === '/conversemos')
+const isChat = computed(() => route.path === '/conversemos' || route.path === '/mi-cuenta')
 
 async function handleLogout() {
   await logout()
@@ -322,6 +324,16 @@ const toggleMenu = () => {
   opacity: 0.6;
   word-break: break-all;
 }
+.navbar__dropdown-link {
+  font-family: 'Acumin Concept', sans-serif;
+  font-size: 0.85rem;
+  color: #394e3c;
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+.navbar__dropdown-link:hover { opacity: 1; }
+
 .navbar__dropdown-logout {
   background: none;
   border: none;
