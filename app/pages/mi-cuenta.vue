@@ -423,9 +423,8 @@ const formatDate = (d: string) =>
 }
 
 .account-danger {
-  margin-top: 3rem;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(57, 78, 60, 0.1);
+  margin-top: 2.5rem;
+  padding-top: 0;
 }
 .account-danger__logout {
   background: none;
